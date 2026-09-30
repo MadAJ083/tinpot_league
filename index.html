@@ -220,10 +220,10 @@ function holePoints(strokes, par, shots){
 const playerById = id => (S.settings?.players||[]).find(p=>p.id===id);
 const pname = id => playerById(id)?.name || "Former player";
 const cardId = (rid,pid) => rid + "__" + pid;
+// A card stores each hole as its own field (h1..h18) so phones never overwrite each other's holes
 function strokesFor(rid,pid){
-  const id = cardId(rid,pid);
-  if (S.local[id]) return S.local[id];
-  const c = S.cards[id]; return c?.strokes || Array(18).fill(null);
+  const id = cardId(rid,pid), c = S.cards[id] || {}, loc = S.local[id] || {};
+  return Array.from({length:18}, (_,i)=>{ const k="h"+(i+1); return (k in loc ? loc[k] : c[k]) ?? null; });
 }
 function cardFor(rid,pid){ return S.cards[cardId(rid,pid)]; }
 function stableford(round, pid){
@@ -293,15 +293,12 @@ async function guarded(fn, okMsg){
     return false;
   }
 }
-function writeCard(rid,pid,strokes,submitted){
-  return S.db.doc("cards/"+cardId(rid,pid)).set({roundId:rid, playerId:pid, strokes, submitted});
-}
 function setStroke(rid,pid,hole,val){
-  const id = cardId(rid,pid);
-  const st = [...strokesFor(rid,pid)]; st[hole-1]=val; S.local[id]=st;
-  // Not awaited: Firestore applies it locally at once and syncs when there's signal
-  writeCard(rid,pid,st,!!S.cards[id]?.submitted).catch(e=>{
-    delete S.local[id];
+  const id = cardId(rid,pid), k = "h"+hole;
+  (S.local[id] ||= {})[k] = val;
+  // Merge write of ONE hole. Not awaited: Firestore applies it locally at once and syncs when there's signal
+  S.db.doc("cards/"+id).setMerge({roundId:rid, playerId:pid, [k]:val}).catch(e=>{
+    if (S.local[id]) delete S.local[id][k];
     toast(e?.code==="permission-denied" ? "That card is locked. Ask the organiser to reopen the round" : "Couldn't save that score");
     render();
   });
@@ -310,7 +307,12 @@ function setStroke(rid,pid,hole,val){
 function submitRound(r){
   const bad = r.players.filter(p=>thru(r,p)<18);
   if (bad.length){ toast("Every hole needs a score or a pick up first"); return; }
-  const writes = r.players.map(p=>writeCard(r.id,p,strokesFor(r.id,p),true));
+  // Submitting sends the card exactly as this phone shows it, so check the full card first
+  const writes = r.players.map(p=>{
+    const d = {roundId:r.id, playerId:p, submitted:true};
+    strokesFor(r.id,p).forEach((v,i)=>d["h"+(i+1)]=v);
+    return S.db.doc("cards/"+cardId(r.id,p)).setMerge(d);
+  });
   Promise.all(writes).catch(e=>toast(e?.code==="permission-denied" ? "Submit was refused. Check the round with the organiser" : "Submit failed. Try again"));
   toast(navigator.onLine ? "Scores submitted. The table is updated" : "Submitted. It'll sync when you've got signal");
   S.tab="table"; render();
@@ -760,7 +762,10 @@ function subscribe(){
   S.unsubs.push(onSnapshot(collection(fs,"admin/cfg/rounds"), q=>{ const o={}; q.docs.forEach(d=>o[d.id]={...d.data(), id:d.id}); S.rounds=o; mark(); snapRender(); }, onErr));
   S.unsubs.push(onSnapshot(collection(fs,"cards"), q=>{
     const o={}; q.docs.forEach(d=>o[d.id]=d.data()); S.cards=o;
-    for (const id of Object.keys(S.local)) if (JSON.stringify(o[id]?.strokes)===JSON.stringify(S.local[id])) delete S.local[id];
+    for (const id of Object.keys(S.local)){
+      for (const k of Object.keys(S.local[id])) if ((o[id]?.[k] ?? null) === S.local[id][k]) delete S.local[id][k];
+      if (!Object.keys(S.local[id]).length) delete S.local[id];
+    }
     mark(); snapRender();
   }, onErr));
 }
@@ -771,7 +776,7 @@ function boot(){
   S.fs = initializeFirestore(app, {localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})});
   S.auth = getAuth(app);
   const fs = S.fs;
-  S.db = { doc: p => ({ set: d=>setDoc(doc(fs,p),d), update: d=>updateDoc(doc(fs,p),d), delete: ()=>deleteDoc(doc(fs,p)) }) };
+  S.db = { doc: p => ({ set: d=>setDoc(doc(fs,p),d), setMerge: d=>setDoc(doc(fs,p),d,{merge:true}), update: d=>updateDoc(doc(fs,p),d), delete: ()=>deleteDoc(doc(fs,p)) }) };
   render();
   onAuthStateChanged(S.auth, async u=>{
     teardown();

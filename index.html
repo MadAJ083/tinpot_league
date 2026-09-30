@@ -141,8 +141,7 @@ table.grid td.tot{font-family:var(--cond);font-weight:700;font-size:16px}
 <script type="module">
 /* ================= YOUR SETTINGS =================
    1. Paste the config from Firebase: Project settings > Your apps > Web app
-   2. After your first organiser sign in, the app shows your UID. Paste it below
-      AND into firestore.rules. */
+   Your organiser UID lives only in the Firestore rules, never in this file. */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyAgSQ-iKAxv1RTe3LPhgaBV-8p99-FmV9Y",
   authDomain: "the-tinpot-league.firebaseapp.com",
@@ -151,17 +150,16 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "173832523185",
   appId: "1:173832523185:web:494e82c2a79e5679868190"
 };
-const ADMIN_UID = "XsqmuHLKMFaLerh5FDejGLTV0W03";
 /* ================================================= */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, onSnapshot, setDoc, updateDoc, deleteDoc, serverTimestamp }
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, onSnapshot, setDoc, updateDoc, deleteDoc, serverTimestamp, getDocFromServer }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 /* ---------- constants ---------- */
 const TYPES = { standard:{label:"Standard", mult:1}, major:{label:"Major", mult:2}, final:{label:"The Final", mult:2} };
-const POINTS3 = [5,3,1], POINTS2 = [2,0];
+const POINTS3 = [5,3,1];
 
 /* ---------- state ---------- */
 const S = {
@@ -243,7 +241,7 @@ function roundStatus(r){
 }
 function roundResults(r){
   const rows = r.players.map(pid=>({pid, score:stableford(r,pid)})).sort((a,b)=>b.score-a.score);
-  const table = rows.length===2 ? POINTS2 : POINTS3.concat(Array(Math.max(0,rows.length-3)).fill(0));
+  const table = POINTS3;
   const mult = TYPES[r.type]?.mult || 1;
   let i=0;
   while (i<rows.length){
@@ -381,7 +379,7 @@ function viewTable(){
   out.push(board);
   const bo = +S.settings.bestOf;
   out.push(h("p",{class:"small muted", style:"margin-top:12px"},
-    `Three ball rounds pay 5, 3 and 1. Two ball rounds pay 2 to the winner. Majors and the Final count double. Ties share the points. `,
+    `Every round pays 5, 3 and 1. Majors and the Final count double. Ties share the points. `,
     bo>0 ? `Your best ${bo} rounds count.` : `Every round counts.`, " Tap a name for their rounds."));
   return out;
 }
@@ -631,7 +629,7 @@ function viewRoundEditor(){
       (c?.tees||[]).map(t=>h("option",{value:t.id, selected:t.id===d.teeId}, `${t.name} (${t.cr} / ${t.slope})`)))),
     h("label",{class:"field"}, h("span",null,"Round type"), h("select",{onchange:e=>{d.type=e.target.value; refreshSug(); render();}},
       Object.entries(TYPES).map(([k,v])=>h("option",{value:k, selected:k===d.type}, v.label+(v.mult>1?", double points":""))))),
-    h("div",null, h("span",{class:"small muted"},"Playing"),
+    h("div",null, h("span",{class:"small muted"},"Playing (league rounds need all three)"),
       S.settings.players.map(p=>h("label",{class:"check"}, h("input",{type:"checkbox", checked:d.players.includes(p.id),
         onchange:e=>{ d.players = e.target.checked ? [...d.players,p.id] : d.players.filter(x=>x!==p.id); render(); }}), h("span",null,p.name))))));
   out.push(h("h3",null,"Handicaps for this round"));
@@ -655,7 +653,7 @@ function viewRoundEditor(){
 }
 async function saveRound(){
   const d = S.editRound;
-  if (d.players.length<2) return toast("Pick at least two players");
+  if (d.players.length!==3) return toast("League rounds need all three players");
   if (!d.date) return toast("Pick a date");
   const hcp = {};
   for (const pid of d.players){
@@ -702,7 +700,7 @@ async function organiserSignIn(){
 function viewNotAdmin(){
   return [h("div",{class:"panel", style:"margin-top:24px"},
     h("h2",{style:"margin-top:0"},"This Google account isn't the organiser"),
-    h("p",null,"If you're setting the league up, this is your UID. Paste it into ADMIN_UID in index.html and into firestore.rules, publish both, then reload."),
+    h("p",null,"If you're setting the league up, this is your UID. Paste it into firestore.rules, publish the rules in the Firebase console, then reload this page."),
     h("input",{type:"text", readonly:true, value:S.uid, "aria-label":"Your UID", onfocus:e=>e.target.select()}),
     h("button",{class:"btn ghost", style:"margin-top:12px", onclick:()=>signOut(S.auth)},"Sign out"))];
 }
@@ -775,12 +773,18 @@ function boot(){
   const fs = S.fs;
   S.db = { doc: p => ({ set: d=>setDoc(doc(fs,p),d), update: d=>updateDoc(doc(fs,p),d), delete: ()=>deleteDoc(doc(fs,p)) }) };
   render();
-  onAuthStateChanged(S.auth, u=>{
+  onAuthStateChanged(S.auth, async u=>{
     teardown();
     if (!u){ signInAnonymously(S.auth).catch(e=>toast("Couldn't connect ("+e.code+")")); return; }
-    S.uid = u.uid;
-    S.isOwner = !u.isAnonymous && u.uid===ADMIN_UID;
-    if (!u.isAnonymous && !S.isOwner){ S.phase="notadmin"; render(); return; }
+    S.uid = u.uid; S.isOwner = false;
+    if (!u.isAnonymous){
+      // Organiser check happens on Google's side: only the UID in the rules can read this
+      try { await getDocFromServer(doc(S.fs,"adminCheck/me")); S.isOwner = true; }
+      catch(e){
+        if (e?.code!=="permission-denied") toast("Couldn't check organiser access. Check your connection and reload");
+        S.phase="notadmin"; render(); return;
+      }
+    }
     if (!S.isOwner && S.tab==="setup") S.tab="table";
     subscribe();
   });

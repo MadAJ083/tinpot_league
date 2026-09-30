@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The League</title>
+<meta name="theme-color" content="#0F4D32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5F1; --panel:#FFFFFF; --ink:#18201B; --muted:#5E6A62; --rule:#D5DCD4;
+  --green:#0F4D32; --green-2:#1D6B47; --green-soft:#E3EEE6; --red:#C8102E; --red-soft:#FBE7EA;
+  --gold:#A87B12; --on-green:#FFFFFF;
+  --cond:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1310; --panel:#151D18; --ink:#E6ECE7; --muted:#95A39A; --rule:#2A352E;
+    --green:#1F7A50; --green-2:#2E9464; --green-soft:#17281F; --red:#FF5C6C; --red-soft:#2E161A;
+    --gold:#E0B64A; --on-green:#FFFFFF;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1310; --panel:#151D18; --ink:#E6ECE7; --muted:#95A39A; --rule:#2A352E;
+  --green:#1F7A50; --green-2:#2E9464; --green-soft:#17281F; --red:#FF5C6C; --red-soft:#2E161A;
+  --gold:#E0B64A; --on-green:#FFFFFF;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px 110px}
+
+header.top{background:var(--green);color:var(--on-green);padding:18px 16px 16px}
+header.top .inner{max-width:640px;margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+header.top h1{font-family:var(--cond);font-weight:700;font-size:34px;line-height:1;margin:0;letter-spacing:.01em}
+header.top .season{font-family:var(--cond);font-size:18px;opacity:.85;font-weight:500}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom,0px);z-index:10}
+nav.tabs .inner{max-width:640px;margin:0 auto;display:flex}
+nav.tabs button{flex:1;border:0;background:none;padding:12px 4px 14px;font-family:var(--cond);font-size:17px;font-weight:600;color:var(--muted);border-top:3px solid transparent}
+nav.tabs button[aria-current="page"]{color:var(--green-2);border-top-color:var(--green-2)}
+
+h2{font-family:var(--cond);font-weight:700;font-size:26px;margin:26px 0 10px;line-height:1.1}
+h3{font-family:var(--cond);font-weight:600;font-size:20px;margin:18px 0 8px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px}
+.stack>*+*{margin-top:12px}
+
+/* The honours board: the one loud element */
+.board{background:var(--panel);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.board-row{color:inherit;font:inherit;cursor:pointer;display:grid;grid-template-columns:48px 1fr auto;align-items:center;border-bottom:1px solid var(--rule);background:none;border-left:0;border-right:0;border-top:0;width:100%;text-align:left;padding:0}
+.board-row:last-child{border-bottom:0}
+.pos{font-family:var(--cond);font-weight:700;font-size:28px;text-align:center;color:var(--muted);padding:14px 0}
+.board-row.first .pos{color:var(--gold)}
+.pname{padding:12px 6px}
+.pname strong{display:block;font-family:var(--cond);font-size:24px;font-weight:600;line-height:1.1}
+.pname span{font-size:13px;color:var(--muted)}
+.pts{font-family:var(--cond);font-weight:700;font-size:38px;line-height:1;background:var(--green);color:var(--on-green);min-width:78px;text-align:center;padding:14px 10px;align-self:stretch;display:flex;align-items:center;justify-content:center}
+.board-row.first .pts{background:var(--red)}
+.board-detail{padding:4px 14px 14px 48px;border-bottom:1px solid var(--rule);font-size:14px}
+.board-detail table{width:100%;border-collapse:collapse}
+.board-detail td{padding:4px 0;border-bottom:1px dashed var(--rule)}
+.board-detail td:last-child{text-align:right;font-family:var(--cond);font-size:17px;font-weight:600}
+.dropped td{color:var(--muted);text-decoration:line-through}
+
+.badge{display:inline-block;font-family:var(--cond);font-weight:600;font-size:14px;padding:1px 8px;border-radius:4px;background:var(--green-soft);color:var(--green-2);vertical-align:middle}
+.badge.major{background:var(--red-soft);color:var(--red)}
+.badge.live{background:var(--red);color:#fff}
+
+.next{display:flex;justify-content:space-between;gap:12px;align-items:center;border-left:5px solid var(--red)}
+.next .when{font-family:var(--cond);font-size:22px;font-weight:700;line-height:1.1}
+
+.btn{border:1px solid var(--green-2);background:var(--green-2);color:#fff;border-radius:8px;padding:10px 16px;font-weight:600}
+.btn.ghost{background:none;color:var(--green-2)}
+.btn.danger{background:none;border-color:var(--red);color:var(--red)}
+.btn.big{width:100%;padding:15px;font-size:18px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+label.field{display:block;margin-bottom:12px}
+label.field>span{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:10px;border:1px solid var(--rule);border-radius:8px;background:var(--bg)}
+input.tiny{width:64px;padding:8px;text-align:center}
+.check{display:flex;gap:10px;align-items:center;padding:6px 0}
+.check input{width:20px;height:20px}
+
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.grid{border-collapse:collapse;font-size:14px;min-width:100%}
+table.grid th,table.grid td{border:1px solid var(--rule);padding:6px 5px;text-align:center}
+table.grid th{font-family:var(--cond);font-weight:600;font-size:15px;background:var(--green-soft)}
+table.grid td.name{text-align:left;white-space:nowrap;font-weight:600}
+table.grid td.tot{font-family:var(--cond);font-weight:700;font-size:16px}
+
+/* Scorecard */
+.holes{display:flex;gap:6px;padding:4px 0 8px}
+.holes button{flex:0 0 36px;height:36px;border-radius:50%;border:1px solid var(--rule);background:var(--panel);font-family:var(--cond);font-weight:600;font-size:16px}
+.holes button.done{background:var(--green-soft);border-color:var(--green-2)}
+.holes button.cur{background:var(--green-2);color:#fff;border-color:var(--green-2)}
+.hole-head{display:flex;align-items:baseline;justify-content:space-between;margin:10px 0}
+.hole-head .no{font-family:var(--cond);font-weight:700;font-size:44px;line-height:1}
+.hole-head .meta{font-family:var(--cond);font-size:22px;font-weight:600;text-align:right}
+.player{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center}
+.player .who strong{font-family:var(--cond);font-size:22px;font-weight:600}
+.player .who .dots{color:var(--red);letter-spacing:2px;font-size:14px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:48px;height:48px;border-radius:10px;border:1px solid var(--rule);background:var(--bg);font-size:26px;font-weight:600;line-height:1}
+.stepper .val{min-width:48px;text-align:center;font-family:var(--cond);font-weight:700;font-size:38px}
+.player .foot{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--muted)}
+.hp{font-family:var(--cond);font-weight:700;font-size:20px;color:var(--ink);background:var(--green-soft);border-radius:6px;padding:0 8px}
+.hp.zero{background:var(--red-soft);color:var(--red)}
+.pick{border:1px dashed var(--rule);background:none;border-radius:6px;padding:4px 10px;font-size:13px}
+.pick.on{border-style:solid;border-color:var(--red);color:var(--red)}
+.navrow{display:flex;gap:10px;margin-top:14px}
+.navrow .btn{flex:1}
+
+.result{width:100%;border-collapse:collapse;margin-top:8px}
+.result td{padding:5px 0;border-top:1px solid var(--rule)}
+.result td.n{text-align:right;font-family:var(--cond);font-size:18px;font-weight:600;width:70px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:20;max-width:90%;font-size:15px}
+.empty{text-align:center;padding:30px 10px}
+@media (prefers-reduced-motion: no-preference){ .toast{animation:up .2s ease-out} @keyframes up{from{opacity:0;transform:translate(-50%,8px)}} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+/* ================= YOUR SETTINGS =================
+   1. Paste the config from Firebase: Project settings > Your apps > Web app
+   2. After your first organiser sign in, the app shows your UID. Paste it below
+      AND into firestore.rules. */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAgSQ-iKAxv1RTe3LPhgaBV-8p99-FmV9Y",
+  authDomain: "the-tinpot-league.firebaseapp.com",
+  projectId: "the-tinpot-league",
+  storageBucket: "the-tinpot-league.firebasestorage.app",
+  messagingSenderId: "173832523185",
+  appId: "1:173832523185:web:494e82c2a79e5679868190"
+};
+const ADMIN_UID = "PASTE_YOUR_UID";
+/* ================================================= */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, onSnapshot, setDoc, updateDoc, deleteDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+/* ---------- constants ---------- */
+const TYPES = { standard:{label:"Standard", mult:1}, major:{label:"Major", mult:2}, final:{label:"The Final", mult:2} };
+const POINTS3 = [5,3,1], POINTS2 = [2,0];
+
+/* ---------- state ---------- */
+const S = {
+  db:null, user:null, ready:false, noDb:false,
+  isOwner:false, canWrite:true,
+  settings:null, courses:{}, rounds:{}, cards:{},
+  tab:"table", openPlayer:null,
+  cardRound:null, hole:1, fullCard:false,
+  draftLeague:null, editCourse:null, editRound:null,
+  local:{}, phase:"loading", unsubs:[], fs:null, auth:null, uid:null, pinBusy:false
+};
+
+/* ---------- tiny DOM helper (textContent only) ---------- */
+function h(tag, props, ...kids){
+  const el = document.createElement(tag);
+  if (props) for (const [k,v] of Object.entries(props)){
+    if (v==null || v===false) continue;
+    if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k==="class") el.className = v;
+    else if (k==="value") el.value = v;
+    else if (k==="checked") el.checked = !!v;
+    else if (k==="selected") el.selected = !!v;
+    else if (v===true) el.setAttribute(k,"");
+    else el.setAttribute(k, v);
+  }
+  for (const k of kids.flat(Infinity)){
+    if (k==null || k===false) continue;
+    el.append(k instanceof Node ? k : document.createTextNode(String(k)));
+  }
+  return el;
+}
+function toast(msg){
+  document.querySelectorAll(".toast").forEach(t=>t.remove());
+  const t = h("div",{class:"toast",role:"status"},msg);
+  document.body.append(t); setTimeout(()=>t.remove(), 2800);
+}
+const uid = p => p + Math.random().toString(36).slice(2,9);
+const today = () => { const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+const fmtDate = s => { if(!s) return ""; const d=new Date(s+"T12:00:00"); return d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"}); };
+const fmtIndex = n => n==null||isNaN(n) ? "" : (n<0 ? "+"+Math.abs(n) : String(n));
+const parseIndex = s => { s=String(s).trim(); if(!s) return NaN; return s.startsWith("+") ? -parseFloat(s.slice(1)) : parseFloat(s); };
+const fmtPts = n => Number.isInteger(n) ? String(n) : n.toFixed(1);
+
+/* ---------- golf maths ---------- */
+function courseHandicap(index, tee, course){
+  const par = course.par.reduce((a,b)=>a+b,0);
+  return Math.round(index * tee.slope / 113 + (tee.cr - par));
+}
+function playingHandicap(ch, allowance, adj){ return Math.round(ch * allowance / 100) + (adj||0); }
+function shotsOn(ph, si){
+  if (ph >= 0) return Math.floor(ph/18) + (si <= ph%18 ? 1 : 0);
+  const g = -ph; return -(Math.floor(g/18) + (si > 18 - (g%18) ? 1 : 0));
+}
+function holePoints(strokes, par, shots){
+  if (strokes==null || strokes==="P") return 0;
+  return Math.max(0, par + shots - strokes + 2);
+}
+const playerById = id => (S.settings?.players||[]).find(p=>p.id===id);
+const pname = id => playerById(id)?.name || "Former player";
+const cardId = (rid,pid) => rid + "__" + pid;
+function strokesFor(rid,pid){
+  const id = cardId(rid,pid);
+  if (S.local[id]) return S.local[id];
+  const c = S.cards[id]; return c?.strokes || Array(18).fill(null);
+}
+function cardFor(rid,pid){ return S.cards[cardId(rid,pid)]; }
+function stableford(round, pid){
+  const course = S.courses[round.courseId]; if(!course) return 0;
+  const ph = round.hcp?.[pid]?.ph ?? 0; const st = strokesFor(round.id,pid);
+  let t=0; for(let i=0;i<18;i++) t += holePoints(st[i], course.par[i], shotsOn(ph, course.si[i]));
+  return t;
+}
+function thru(round,pid){ return strokesFor(round.id,pid).filter(x=>x!=null).length; }
+function roundStatus(r){
+  const cs = r.players.map(p=>cardFor(r.id,p));
+  if (r.players.length && cs.every(c=>c?.submitted)) return "complete";
+  if (r.players.some(p=>thru(r,p)>0)) return "live";
+  return "scheduled";
+}
+function roundResults(r){
+  const rows = r.players.map(pid=>({pid, score:stableford(r,pid)})).sort((a,b)=>b.score-a.score);
+  const table = rows.length===2 ? POINTS2 : POINTS3.concat(Array(Math.max(0,rows.length-3)).fill(0));
+  const mult = TYPES[r.type]?.mult || 1;
+  let i=0;
+  while (i<rows.length){
+    let j=i; while (j+1<rows.length && rows[j+1].score===rows[i].score) j++;
+    let sum=0; for(let k=i;k<=j;k++) sum += table[k]||0;
+    for(let k=i;k<=j;k++){ rows[k].pos=i+1; rows[k].pts = (sum/(j-i+1))*mult; }
+    i=j+1;
+  }
+  return rows;
+}
+const seasonRounds = () => Object.values(S.rounds).filter(r=>r.season===S.settings?.season);
+function leaderboard(){
+  const players = S.settings?.players||[]; const bestOf = +S.settings?.bestOf || 0;
+  const done = seasonRounds().filter(r=>roundStatus(r)==="complete").sort((a,b)=>a.date<b.date?-1:1);
+  const byP = {}; players.forEach(p=>byP[p.id]={pid:p.id, entries:[], total:0, wins:0, best:null});
+  for (const r of done){
+    for (const row of roundResults(r)){
+      const b = byP[row.pid]; if(!b) continue;
+      b.entries.push({r, pts:row.pts, score:row.score, pos:row.pos, n:r.players.length});
+      if (row.pos===1) b.wins++;
+      if (b.best==null || row.score>b.best) b.best=row.score;
+    }
+  }
+  for (const b of Object.values(byP)){
+    const ranked = [...b.entries].sort((a,c)=>c.pts-a.pts || (a.r.date<c.r.date?-1:1));
+    const counted = new Set((bestOf>0 ? ranked.slice(0,bestOf) : ranked).map(e=>e.r.id));
+    b.entries.forEach(e=>e.counted=counted.has(e.r.id));
+    b.total = b.entries.filter(e=>e.counted).reduce((a,e)=>a+e.pts,0);
+  }
+  return Object.values(byP).sort((a,b)=>b.total-a.total || b.wins-a.wins || (b.best??-1)-(a.best??-1));
+}
+function suggestedAdj(forType, date, excludeId){
+  if (!S.settings?.adjust || forType!=="standard") return {};
+  const prev = seasonRounds().filter(r=>r.id!==excludeId && r.date<=date && r.players.length>=3 && roundStatus(r)==="complete")
+    .sort((a,b)=>a.date<b.date?1:-1)[0];
+  if (!prev) return {};
+  const res = roundResults(prev), out={};
+  if (res[0].score !== res[1]?.score) out[res[0].pid] = -1;
+  const last = res[res.length-1]; if (last.score !== res[res.length-2]?.score) out[last.pid] = 1;
+  return out;
+}
+
+/* ---------- writes ---------- */
+async function guarded(fn, okMsg){
+  try { await fn(); if(okMsg) toast(okMsg); return true; }
+  catch(e){
+    if (e?.code==="permission-denied") toast("You don't have permission to change this");
+    else toast("Couldn't save ("+(e?.code||"error")+"). Try again");
+    return false;
+  }
+}
+function writeCard(rid,pid,strokes,submitted){
+  return S.db.doc("cards/"+cardId(rid,pid)).set({roundId:rid, playerId:pid, strokes, submitted});
+}
+function setStroke(rid,pid,hole,val){
+  const id = cardId(rid,pid);
+  const st = [...strokesFor(rid,pid)]; st[hole-1]=val; S.local[id]=st;
+  // Not awaited: Firestore applies it locally at once and syncs when there's signal
+  writeCard(rid,pid,st,!!S.cards[id]?.submitted).catch(e=>{
+    delete S.local[id];
+    toast(e?.code==="permission-denied" ? "That card is locked. Ask the organiser to reopen the round" : "Couldn't save that score");
+    render();
+  });
+  render();
+}
+function submitRound(r){
+  const bad = r.players.filter(p=>thru(r,p)<18);
+  if (bad.length){ toast("Every hole needs a score or a pick up first"); return; }
+  const writes = r.players.map(p=>writeCard(r.id,p,strokesFor(r.id,p),true));
+  Promise.all(writes).catch(e=>toast(e?.code==="permission-denied" ? "Submit was refused. Check the round with the organiser" : "Submit failed. Try again"));
+  toast(navigator.onLine ? "Scores submitted. The table is updated" : "Submitted. It'll sync when you've got signal");
+  S.tab="table"; render();
+}
+async function reopenRound(r){
+  if (!confirm("Reopen this round so scores can be changed?")) return;
+  await guarded(async()=>{ for(const p of r.players){ if(cardFor(r.id,p)) await S.db.doc("cards/"+cardId(r.id,p)).update({submitted:false}); } }, "Round reopened");
+}
+async function deleteRound(r){
+  if (!confirm("Delete this round and any scores in it?")) return;
+  await guarded(async()=>{
+    for(const p of r.players){ if(cardFor(r.id,p)) await S.db.doc("cards/"+cardId(r.id,p)).delete(); }
+    await S.db.doc("admin/cfg/rounds/"+r.id).delete();
+  }, "Round deleted");
+}
+async function setLeaguePin(pin){
+  pin = pin.trim();
+  if (pin.length < 6) return toast("Use at least 6 characters. Longer is harder to guess");
+  if (await guarded(()=>S.db.doc("secret/pin").set({value:pin}), "League PIN saved. Send it to your mates")) render();
+}
+/* ---------- views ---------- */
+function roundLabel(r){
+  const c = S.courses[r.courseId]; const tee = c?.tees.find(t=>t.id===r.teeId);
+  return (c?.name||"Unknown course") + (tee ? ", "+tee.name+" tees" : "");
+}
+function typeBadge(r){ return r.type==="standard" ? null : h("span",{class:"badge major"}, TYPES[r.type].label+" x2"); }
+
+function viewTable(){
+  const out = [];
+  const up = seasonRounds().filter(r=>roundStatus(r)!=="complete").sort((a,b)=>a.date<b.date?-1:1);
+  const live = up.find(r=>roundStatus(r)==="live");
+  const next = live || up.find(r=>r.date>=today()) || up[0];
+  if (next){
+    const isLive = roundStatus(next)==="live";
+    out.push(h("div",{class:"panel next", style:"margin-top:18px"},
+      h("div",null,
+        h("div",{class:"small muted"}, isLive ? "In play now" : "Next round"),
+        h("div",{class:"when"}, fmtDate(next.date)),
+        h("div",null, roundLabel(next), " ", typeBadge(next))),
+      h("button",{class:"btn", onclick:()=>{S.cardRound=next.id; S.hole=firstOpenHole(next); S.tab="card"; render();}}, isLive?"Live card":"Scorecard")));
+  }
+  out.push(h("h2",null,"League table"));
+  const lb = leaderboard();
+  if (!lb.length) return [...out, h("div",{class:"panel empty muted"},"No players yet.")];
+  const board = h("div",{class:"board"});
+  let prevTotal=null, prevPos=0;
+  lb.forEach((b,i)=>{
+    const pos = (prevTotal===b.total) ? prevPos : i+1; prevTotal=b.total; prevPos=pos;
+    const counted = b.entries.filter(e=>e.counted).length;
+    const open = S.openPlayer===b.pid;
+    board.append(h("button",{class:"board-row"+(pos===1&&b.total>0?" first":""), "aria-expanded":String(open),
+      onclick:()=>{S.openPlayer=open?null:b.pid; render();}},
+      h("div",{class:"pos"}, b.total>0||b.entries.length? pos : "–"),
+      h("div",{class:"pname"}, h("strong",null,pname(b.pid)),
+        h("span",null, b.entries.length ? `${b.entries.length} played, ${counted} counting, ${b.wins} win${b.wins===1?"":"s"}, best ${b.best} pts` : "Yet to play")),
+      h("div",{class:"pts"}, fmtPts(b.total))));
+    if (open && b.entries.length){
+      board.append(h("div",{class:"board-detail"}, h("table",null,
+        [...b.entries].reverse().map(e=>h("tr",{class:e.counted?"":"dropped"},
+          h("td",null, fmtDate(e.r.date)+", "+(S.courses[e.r.courseId]?.name||"")+(e.r.type!=="standard"?" ("+TYPES[e.r.type].label+")":"")),
+          h("td",null, ordinal(e.pos)+", "+e.score+" stableford"),
+          h("td",null, fmtPts(e.pts))))),
+        b.entries.some(e=>!e.counted) ? h("p",{class:"muted", style:"margin:8px 0 0"},"Struck through rounds are outside your best "+S.settings.bestOf+" and don't count.") : null));
+    }
+  });
+  out.push(board);
+  const bo = +S.settings.bestOf;
+  out.push(h("p",{class:"small muted", style:"margin-top:12px"},
+    `Three ball rounds pay 5, 3 and 1. Two ball rounds pay 2 to the winner. Majors and the Final count double. Ties share the points. `,
+    bo>0 ? `Your best ${bo} rounds count.` : `Every round counts.`, " Tap a name for their rounds."));
+  return out;
+}
+const ordinal = n => n + (["th","st","nd","rd"][(n%100>10&&n%100<14)?0:n%10] || "th");
+function firstOpenHole(r){
+  for (let i=1;i<=18;i++){ if (r.players.some(p=>strokesFor(r.id,p)[i-1]==null)) return i; }
+  return 18;
+}
+
+function viewRounds(){
+  const out=[h("h2",null,"Rounds")];
+  if (S.isOwner) out.push(h("button",{class:"btn big", onclick:()=>startRoundEditor()},"Set up a round"));
+  const rs = seasonRounds().sort((a,b)=>a.date<b.date?1:-1);
+  if (!rs.length){ out.push(h("div",{class:"panel empty muted", style:"margin-top:12px"}, S.isOwner?"No rounds yet. Set one up and it'll appear on everyone's phone.":"No rounds set up yet.")); return out; }
+  const list = h("div",{class:"stack", style:"margin-top:14px"});
+  for (const r of rs){
+    const st = roundStatus(r); const c = S.courses[r.courseId];
+    const p = h("div",{class:"panel"},
+      h("div",{class:"spread"},
+        h("div",null, h("strong",{style:"font-family:var(--cond);font-size:21px"}, fmtDate(r.date)), " ", typeBadge(r), " ",
+          st==="live"?h("span",{class:"badge live"},"Live"):st==="complete"?h("span",{class:"badge"},"Final"):null),
+      ),
+      h("div",{class:"muted small"}, roundLabel(r)));
+    if (st==="complete"){
+      p.append(h("table",{class:"result"}, roundResults(r).map(x=>h("tr",null,
+        h("td",null, ordinal(x.pos)+"  "+pname(x.pid)+"  (plays off "+(r.hcp?.[x.pid]?.ph??"?")+")"),
+        h("td",{class:"n"}, x.score+" pts"),
+        h("td",{class:"n"}, "+"+fmtPts(x.pts))))));
+    } else {
+      p.append(h("p",{class:"small", style:"margin:6px 0 0"}, r.players.map(pid=>pname(pid)+" "+(r.hcp?.[pid]?.ph??"")).join(", ")));
+    }
+    const actions = h("div",{class:"row", style:"margin-top:10px"});
+    actions.append(h("button",{class:"btn ghost", onclick:()=>{S.cardRound=r.id; S.hole=firstOpenHole(r); S.fullCard=st==="complete"; S.tab="card"; render();}}, st==="complete"?"View card":"Open scorecard"));
+    if (S.isOwner){
+      actions.append(h("button",{class:"btn ghost", onclick:()=>startRoundEditor(r)},"Edit"));
+      if (st==="complete") actions.append(h("button",{class:"btn ghost", onclick:()=>reopenRound(r)},"Reopen"));
+      actions.append(h("button",{class:"btn danger", onclick:()=>deleteRound(r)},"Delete"));
+    }
+    p.append(actions); list.append(p);
+  }
+  out.push(list); return out;
+}
+
+function viewCard(){
+  let r = S.rounds[S.cardRound];
+  if (!r){
+    const open = seasonRounds().filter(x=>roundStatus(x)!=="complete").sort((a,b)=>a.date<b.date?-1:1);
+    if (!open.length) return [h("h2",null,"Scorecard"), h("div",{class:"panel empty muted"},"No rounds waiting to be played.")];
+    if (open.length===1){ r=open[0]; S.cardRound=r.id; S.hole=firstOpenHole(r); }
+    else return [h("h2",null,"Which round?"), h("div",{class:"stack"}, open.map(x=>h("button",{class:"panel", style:"width:100%;text-align:left",
+      onclick:()=>{S.cardRound=x.id; S.hole=firstOpenHole(x); render();}}, h("strong",null,fmtDate(x.date)), " ", typeBadge(x), h("div",{class:"small muted"},roundLabel(x)))))];
+  }
+  const c = S.courses[r.courseId];
+  if (!c) return [h("div",{class:"panel empty"},"This round's course has been deleted.")];
+  const st = roundStatus(r); const locked = st==="complete" || !S.canWrite;
+  const out = [
+    h("div",{class:"spread", style:"margin-top:18px"},
+      h("div",null, h("strong",{style:"font-family:var(--cond);font-size:22px"}, fmtDate(r.date)), " ", typeBadge(r), h("div",{class:"small muted"}, roundLabel(r))),
+      h("button",{class:"btn ghost", onclick:()=>{S.fullCard=!S.fullCard; render();}}, S.fullCard?"Hole view":"Full card"))
+  ];
+  if (!S.canWrite) out.push(h("p",{class:"small muted", style:"margin-top:8px"},"You can watch scores here but can't enter them."));
+  if (st==="complete") out.push(h("p",{class:"small muted", style:"margin-top:8px"},"This round is finished."+(S.isOwner?" Reopen it from Rounds to make changes.":"")));
+  if (S.fullCard){ out.push(fullCardTable(r,c)); if(!locked) out.push(submitBlock(r)); return out; }
+
+  const holes = h("div",{class:"holes scroll"});
+  for (let i=1;i<=18;i++){
+    const done = r.players.every(p=>strokesFor(r.id,p)[i-1]!=null);
+    holes.append(h("button",{class:(i===S.hole?"cur":done?"done":""), "aria-label":"Hole "+i, onclick:()=>{S.hole=i; render();}}, i));
+  }
+  out.push(holes);
+  const i = S.hole-1;
+  out.push(h("div",{class:"hole-head"}, h("div",{class:"no"},"Hole "+S.hole), h("div",{class:"meta"},"Par "+c.par[i], h("div",{class:"small muted"},"Stroke index "+c.si[i]))));
+  const players = h("div",{class:"stack"});
+  for (const pid of r.players){
+    const ph = r.hcp?.[pid]?.ph ?? 0; const sh = shotsOn(ph, c.si[i]);
+    const val = strokesFor(r.id,pid)[i];
+    const pts = holePoints(val, c.par[i], sh);
+    const set = v => setStroke(r.id,pid,S.hole,v);
+    players.append(h("div",{class:"panel player"},
+      h("div",{class:"who"}, h("strong",null,pname(pid)),
+        h("div",{class:"dots"}, sh>0 ? "●".repeat(sh)+(sh===1?" 1 shot":" "+sh+" shots") : sh<0 ? "gives "+(-sh) : h("span",{class:"muted"},"no shot"))),
+      h("div",{class:"stepper"},
+        h("button",{"aria-label":"One fewer for "+pname(pid), disabled:locked, onclick:()=>set(val==null||val==="P" ? Math.max(1,c.par[i]-1) : Math.max(1,val-1))},"−"),
+        h("div",{class:"val", "aria-live":"polite"}, val==null?"–":val==="P"?"P":val),
+        h("button",{"aria-label":"One more for "+pname(pid), disabled:locked, onclick:()=>set(val==null||val==="P" ? c.par[i] : val+1)},"+")),
+      h("div",{class:"foot"},
+        h("span",null, "Plays off "+ph+", ", stableford(r,pid)+" pts thru "+thru(r,pid)),
+        h("span",{class:"row", style:"gap:8px"},
+          h("button",{class:"pick"+(val==="P"?" on":""), disabled:locked, onclick:()=>set(val==="P"?null:"P")},"Pick up"),
+          h("span",{class:"hp"+(val!=null&&pts===0?" zero":"")}, val==null?"–":pts+" pts")))));
+  }
+  out.push(players);
+  out.push(h("div",{class:"navrow"},
+    h("button",{class:"btn ghost", disabled:S.hole===1, onclick:()=>{S.hole--; render(); window.scrollTo(0,0);}},"Previous hole"),
+    h("button",{class:"btn", disabled:S.hole===18, onclick:()=>{S.hole++; render(); window.scrollTo(0,0);}},"Next hole")));
+  if (!locked && (S.hole===18 || r.players.every(p=>thru(r,p)===18))) out.push(submitBlock(r));
+  return out;
+}
+function submitBlock(r){
+  const ready = r.players.every(p=>thru(r,p)===18);
+  return h("div",{style:"margin-top:18px"},
+    h("button",{class:"btn big", disabled:!ready, onclick:()=>submitRound(r)},"Submit scores"),
+    h("p",{class:"small muted", style:"margin-top:6px"}, ready ? "Check the full card first. Submitting finishes the round and updates the table." : "Every player needs a score or a pick up on all 18 holes."));
+}
+function fullCardTable(r,c){
+  const head = h("tr",null, h("th",null,"Hole"), [...Array(18)].map((_,i)=>[h("th",null,i+1), i===8?h("th",null,"Out"):null]), h("th",null,"In"), h("th",null,"Pts"));
+  const par = h("tr",null, h("td",{class:"name"},"Par"), c.par.map((p,i)=>[h("td",null,p), i===8?h("td",null,c.par.slice(0,9).reduce((a,b)=>a+b,0)):null]), h("td",null,c.par.slice(9).reduce((a,b)=>a+b,0)), h("td",null,""));
+  const rows = r.players.map(pid=>{
+    const st = strokesFor(r.id,pid), ph=r.hcp?.[pid]?.ph??0;
+    const p = i=>holePoints(st[i],c.par[i],shotsOn(ph,c.si[i]));
+    const sum=(a,b)=>{let s=0;for(let i=a;i<b;i++) s+=p(i); return s;};
+    return h("tr",null, h("td",{class:"name"}, pname(pid)+" ("+ph+")"),
+      st.map((v,i)=>[h("td",{title:p(i)+" pts"}, v==null?"":v, v!=null? h("div",{class:"small muted"},p(i)):null), i===8?h("td",{class:"tot"},sum(0,9)):null]),
+      h("td",{class:"tot"},sum(9,18)), h("td",{class:"tot"},sum(0,18)));
+  });
+  return h("div",{class:"scroll panel", style:"margin-top:12px;padding:0"}, h("table",{class:"grid"}, head, par, rows));
+}
+
+/* ---------- setup (owner) ---------- */
+function blankSettings(){ return {season:new Date().getFullYear()+" season", players:[], bestOf:6, allowance:95, adjust:true}; }
+function viewSetup(){
+  if (S.editCourse) return viewCourseEditor();
+  if (S.editRound) return viewRoundEditor();
+  if (!S.draftLeague) S.draftLeague = JSON.parse(JSON.stringify(S.settings || blankSettings()));
+  const d = S.draftLeague;
+  const out = [h("h2",null,"League settings")];
+  const lg = h("div",{class:"panel"},
+    h("label",{class:"field"}, h("span",null,"Season name. Changing it starts a fresh table and keeps old rounds."),
+      h("input",{type:"text", value:d.season, oninput:e=>d.season=e.target.value})),
+    h("div",{class:"row"},
+      h("label",{class:"field", style:"flex:1"}, h("span",null,"Best rounds that count (0 for all)"),
+        h("input",{type:"number", inputmode:"numeric", min:"0", value:d.bestOf, oninput:e=>d.bestOf=+e.target.value})),
+      h("label",{class:"field", style:"flex:1"}, h("span",null,"Handicap allowance %"),
+        h("input",{type:"number", inputmode:"numeric", min:"0", max:"100", value:d.allowance, oninput:e=>d.allowance=+e.target.value}))),
+    h("label",{class:"check"}, h("input",{type:"checkbox", checked:d.adjust, onchange:e=>d.adjust=e.target.checked}),
+      h("span",null,"Suggest a shot back from the last winner and a shot to last place (standard rounds only)")));
+  out.push(lg);
+  out.push(h("h3",null,"Players"));
+  const pl = h("div",{class:"panel"});
+  if (!d.players.length) pl.append(h("p",{class:"muted"},"Add the three of you. Use + for a plus handicap, like +1.2."));
+  d.players.forEach((p,idx)=>{
+    pl.append(h("div",{class:"row", style:"margin-bottom:10px;flex-wrap:nowrap"},
+      h("input",{type:"text", "aria-label":"Name", placeholder:"Name", value:p.name, oninput:e=>p.name=e.target.value}),
+      h("input",{type:"text", class:"tiny", inputmode:"decimal", "aria-label":"Handicap index", placeholder:"Index", value:fmtIndex(p.index), oninput:e=>p.index=parseIndex(e.target.value)}),
+      h("button",{class:"btn danger", "aria-label":"Remove "+(p.name||"player"), onclick:()=>{ if(confirm("Remove "+(p.name||"this player")+"? Their past rounds stay in the history.")){ d.players.splice(idx,1); render(); } }},"✕")));
+  });
+  pl.append(h("button",{class:"btn ghost", onclick:()=>{ d.players.push({id:uid("p_"), name:"", index:NaN}); render(); }},"Add player"));
+  out.push(pl);
+  out.push(h("button",{class:"btn big", style:"margin-top:14px", onclick:async()=>{
+    if (d.players.some(p=>!p.name.trim() || !Number.isFinite(p.index))) return toast("Every player needs a name and handicap index");
+    if (!d.season.trim()) return toast("Give the season a name");
+    const clean = {...d, players:d.players.map(p=>({id:p.id, name:p.name.trim(), index:+p.index}))};
+    if (await guarded(()=>S.db.doc("admin/cfg").set(clean), "Settings saved")){ S.draftLeague=null; render(); }
+  }},"Save settings"));
+
+  out.push(h("h2",null,"Courses"));
+  const cl = h("div",{class:"stack"});
+  Object.values(S.courses).sort((a,b)=>a.name.localeCompare(b.name)).forEach(c=>{
+    cl.append(h("div",{class:"panel spread"},
+      h("div",null, h("strong",null,c.name), h("div",{class:"small muted"}, "Par "+c.par.reduce((a,b)=>a+b,0)+", "+c.tees.map(t=>t.name).join(", "))),
+      h("button",{class:"btn ghost", onclick:()=>{S.editCourse=JSON.parse(JSON.stringify(c)); render(); window.scrollTo(0,0);}},"Edit")));
+  });
+  cl.append(h("button",{class:"btn ghost", onclick:()=>{S.editCourse={id:uid("c_"), name:"", par:Array(18).fill(4), si:Array(18).fill(""), tees:[{id:uid("t_"), name:"Yellow", cr:"", slope:""}], isNew:true}; render(); window.scrollTo(0,0);}},"Add a course"));
+  out.push(cl);
+  out.push(h("h2",null,"Rounds"));
+  out.push(h("button",{class:"btn big", onclick:()=>startRoundEditor()},"Set up a round"));
+  return out;
+}
+function viewCourseEditor(){
+  const c = S.editCourse;
+  const out = [h("h2",null, c.isNew?"Add a course":"Edit course"),
+    h("p",{class:"small muted"},"Copy par and stroke index from the scorecard. Course rating and slope are on the card or the club's website.")];
+  out.push(h("div",{class:"panel"}, h("label",{class:"field"}, h("span",null,"Course name"), h("input",{type:"text", value:c.name, oninput:e=>c.name=e.target.value}))));
+  out.push(h("h3",null,"Tees"));
+  const tp = h("div",{class:"panel"});
+  c.tees.forEach((t,idx)=>{
+    tp.append(h("div",{class:"row", style:"margin-bottom:10px;flex-wrap:nowrap"},
+      h("input",{type:"text", "aria-label":"Tee name", placeholder:"Tee", value:t.name, oninput:e=>t.name=e.target.value}),
+      h("input",{type:"text", class:"tiny", inputmode:"decimal", "aria-label":"Course rating", placeholder:"Rating", value:t.cr, oninput:e=>t.cr=e.target.value}),
+      h("input",{type:"text", class:"tiny", inputmode:"numeric", "aria-label":"Slope", placeholder:"Slope", value:t.slope, oninput:e=>t.slope=e.target.value}),
+      c.tees.length>1 ? h("button",{class:"btn danger", "aria-label":"Remove tee", onclick:()=>{c.tees.splice(idx,1); render();}},"✕") : null));
+  });
+  tp.append(h("button",{class:"btn ghost", onclick:()=>{c.tees.push({id:uid("t_"), name:"", cr:"", slope:""}); render();}},"Add tee"));
+  out.push(tp);
+  out.push(h("h3",null,"Holes"));
+  const tb = h("table",{class:"grid"}, h("tr",null, h("th",null,"Hole"), h("th",null,"Par"), h("th",null,"Stroke index")));
+  for (let i=0;i<18;i++){
+    tb.append(h("tr",null, h("td",null,i+1),
+      h("td",null, h("input",{type:"number", class:"tiny", inputmode:"numeric", min:"3", max:"6", "aria-label":"Par hole "+(i+1), value:c.par[i], oninput:e=>c.par[i]=+e.target.value})),
+      h("td",null, h("input",{type:"number", class:"tiny", inputmode:"numeric", min:"1", max:"18", "aria-label":"Stroke index hole "+(i+1), value:c.si[i], oninput:e=>c.si[i]=e.target.value===""?"":+e.target.value}))));
+  }
+  out.push(h("div",{class:"panel scroll"}, tb));
+  out.push(h("div",{class:"navrow"},
+    h("button",{class:"btn ghost", onclick:()=>{S.editCourse=null; render();}},"Cancel"),
+    h("button",{class:"btn", onclick:saveCourse},"Save course")));
+  const used = Object.values(S.rounds).some(r=>r.courseId===c.id);
+  if (!c.isNew && !used) out.push(h("button",{class:"btn danger", style:"margin-top:14px", onclick:async()=>{
+    if(!confirm("Delete "+c.name+"?")) return;
+    if (await guarded(()=>S.db.doc("admin/cfg/courses/"+c.id).delete(), "Course deleted")){ S.editCourse=null; render(); }
+  }},"Delete course"));
+  return out;
+}
+async function saveCourse(){
+  const c = S.editCourse;
+  if (!c.name.trim()) return toast("Give the course a name");
+  if (c.par.some(p=>!(p>=3&&p<=6))) return toast("Each par should be between 3 and 6");
+  const si = c.si.map(Number); const set = new Set(si);
+  if (si.some(x=>!(x>=1&&x<=18)) || set.size!==18) return toast("Stroke indexes must use each number from 1 to 18 once");
+  const tees = [];
+  for (const t of c.tees){
+    const cr=parseFloat(t.cr), sl=parseInt(t.slope,10);
+    if (!t.name.trim() || isNaN(cr) || !(sl>=55&&sl<=155)) return toast("Each tee needs a name, a rating like 70.4 and a slope between 55 and 155");
+    tees.push({id:t.id, name:t.name.trim(), cr, slope:sl});
+  }
+  const clean = {id:c.id, name:c.name.trim(), par:c.par.map(Number), si, tees};
+  if (await guarded(()=>S.db.doc("admin/cfg/courses/"+c.id).set(clean), "Course saved")){ S.editCourse=null; render(); }
+}
+
+function startRoundEditor(r){
+  if (!S.settings?.players?.length) { S.tab="setup"; render(); return toast("Add your players in settings first"); }
+  if (!Object.keys(S.courses).length) { S.tab="setup"; render(); return toast("Add a course first"); }
+  const c0 = Object.values(S.courses)[0];
+  S.editRound = r ? JSON.parse(JSON.stringify(r)) : {id:uid("r_"), isNew:true, date:today(), courseId:c0.id, teeId:c0.tees[0].id, type:"standard",
+    players:S.settings.players.map(p=>p.id), hcp:{}, season:S.settings.season};
+  const d = S.editRound;
+  const sug = r ? {} : suggestedAdj(d.type, d.date, d.id);
+  for (const p of S.settings.players){
+    if (!d.hcp[p.id]) d.hcp[p.id] = {index:p.index, adj:sug[p.id]||0};
+  }
+  S.tab="setup"; render(); window.scrollTo(0,0);
+}
+function calcRow(d,pid){
+  const c=S.courses[d.courseId], t=c?.tees.find(x=>x.id===d.teeId), row=d.hcp[pid];
+  if(!c||!t||!Number.isFinite(row.index)) return {ch:"?", ph:"?"};
+  const ch = courseHandicap(row.index,t,c); return {ch, ph:playingHandicap(ch, S.settings.allowance, +row.adj||0)};
+}
+function viewRoundEditor(){
+  const d = S.editRound; const c = S.courses[d.courseId];
+  if (c && !c.tees.find(t=>t.id===d.teeId)) d.teeId = c.tees[0].id;
+  const refreshSug = ()=>{ if(!d.isNew) return; const s=suggestedAdj(d.type,d.date,d.id); for(const p of S.settings.players) d.hcp[p.id].adj = s[p.id]||0; };
+  const out = [h("h2",null, d.isNew?"Set up a round":"Edit round")];
+  out.push(h("div",{class:"panel"},
+    h("label",{class:"field"}, h("span",null,"Date"), h("input",{type:"date", value:d.date, onchange:e=>{d.date=e.target.value; refreshSug(); render();}})),
+    h("label",{class:"field"}, h("span",null,"Course"), h("select",{onchange:e=>{d.courseId=e.target.value; d.teeId=S.courses[d.courseId].tees[0].id; render();}},
+      Object.values(S.courses).map(x=>h("option",{value:x.id, selected:x.id===d.courseId}, x.name)))),
+    h("label",{class:"field"}, h("span",null,"Tees"), h("select",{onchange:e=>{d.teeId=e.target.value; render();}},
+      (c?.tees||[]).map(t=>h("option",{value:t.id, selected:t.id===d.teeId}, `${t.name} (${t.cr} / ${t.slope})`)))),
+    h("label",{class:"field"}, h("span",null,"Round type"), h("select",{onchange:e=>{d.type=e.target.value; refreshSug(); render();}},
+      Object.entries(TYPES).map(([k,v])=>h("option",{value:k, selected:k===d.type}, v.label+(v.mult>1?", double points":""))))),
+    h("div",null, h("span",{class:"small muted"},"Playing"),
+      S.settings.players.map(p=>h("label",{class:"check"}, h("input",{type:"checkbox", checked:d.players.includes(p.id),
+        onchange:e=>{ d.players = e.target.checked ? [...d.players,p.id] : d.players.filter(x=>x!==p.id); render(); }}), h("span",null,p.name))))));
+  out.push(h("h3",null,"Handicaps for this round"));
+  out.push(h("p",{class:"small muted"},`Course handicap uses index × slope ÷ 113 plus rating minus par. Playing handicap is ${S.settings.allowance}% of that plus any league adjustment.`));
+  const tb = h("table",{class:"grid"}, h("tr",null, h("th",null,"Player"), h("th",null,"Index"), h("th",null,"Course"), h("th",null,"Adjust"), h("th",null,"Plays off")));
+  for (const pid of d.players){
+    const row = d.hcp[pid]; const v = calcRow(d,pid);
+    const chCell = h("td",{class:"tot"}, v.ch), phCell = h("td",{class:"tot"}, v.ph);
+    const upd = ()=>{ const x=calcRow(d,pid); chCell.textContent=x.ch; phCell.textContent=x.ph; };
+    tb.append(h("tr",null, h("td",{class:"name"}, pname(pid)),
+      h("td",null, h("input",{type:"text", class:"tiny", inputmode:"decimal", "aria-label":"Index for "+pname(pid), value:fmtIndex(row.index), oninput:e=>{row.index=parseIndex(e.target.value); upd();}})),
+      chCell,
+      h("td",null, h("input",{type:"number", class:"tiny", inputmode:"numeric", "aria-label":"Adjustment for "+pname(pid), value:row.adj, oninput:e=>{row.adj=+e.target.value||0; upd();}})),
+      phCell));
+  }
+  out.push(h("div",{class:"panel scroll"}, tb));
+  out.push(h("div",{class:"navrow"},
+    h("button",{class:"btn ghost", onclick:()=>{S.editRound=null; render();}},"Cancel"),
+    h("button",{class:"btn", onclick:saveRound},"Save round")));
+  return out;
+}
+async function saveRound(){
+  const d = S.editRound;
+  if (d.players.length<2) return toast("Pick at least two players");
+  if (!d.date) return toast("Pick a date");
+  const hcp = {};
+  for (const pid of d.players){
+    const row=d.hcp[pid]; const v=calcRow(d,pid);
+    if (v.ph==="?") return toast("Check the handicap index for "+pname(pid));
+    hcp[pid] = {index:+row.index, adj:+row.adj||0, ch:v.ch, ph:v.ph};
+  }
+  const clean = {id:d.id, date:d.date, courseId:d.courseId, teeId:d.teeId, type:d.type, players:d.players, hcp, season:d.season||S.settings.season};
+  if (await guarded(()=>S.db.doc("admin/cfg/rounds/"+d.id).set(clean), "Round saved. Everyone can see it now")){ S.editRound=null; S.tab="rounds"; render(); }
+}
+
+/* ---------- PIN, sign in, shell ---------- */
+function pinSection(){
+  let v="";
+  return [h("h2",null,"League PIN"),
+    h("div",{class:"panel"},
+      h("p",{class:"small muted"},"Your mates enter this once on each phone. Changing it locks everyone out until they enter the new one."),
+      h("div",{class:"row", style:"flex-wrap:nowrap"},
+        h("input",{type:"text", autocomplete:"off", "aria-label":"New league PIN", placeholder:"New PIN", oninput:e=>v=e.target.value}),
+        h("button",{class:"btn", onclick:()=>setLeaguePin(v)},"Set PIN"))),
+    h("button",{class:"btn ghost", style:"margin-top:14px", onclick:()=>signOut(S.auth)},"Sign out of organiser account")];
+}
+function viewPin(){
+  let v="";
+  const go = async()=>{
+    const pin=v.trim(); if(!pin) return;
+    S.pinBusy=true; render();
+    try { await setDoc(doc(S.fs,"members/"+S.uid), {pin, at:serverTimestamp()}); S.pinBusy=false; subscribe(); }
+    catch(e){ S.pinBusy=false; render(); toast(e?.code==="permission-denied" ? "That PIN isn't right" : "Couldn't check the PIN. Check your signal"); }
+  };
+  return [h("div",{class:"panel", style:"margin-top:24px"},
+    h("h2",{style:"margin-top:0"},"Enter the league PIN"),
+    h("p",{class:"muted"},"You only need to do this once on this phone."),
+    h("input",{type:"text", autocomplete:"off", autocapitalize:"off", "aria-label":"League PIN", placeholder:"PIN",
+      oninput:e=>v=e.target.value, onkeydown:e=>{ if(e.key==="Enter") go(); }}),
+    h("button",{class:"btn big", style:"margin-top:12px", disabled:S.pinBusy, onclick:go}, S.pinBusy?"Checking…":"Join the league")),
+    h("p",{style:"margin-top:18px;text-align:center"}, h("button",{class:"btn ghost", onclick:organiserSignIn},"Organiser sign in"))];
+}
+async function organiserSignIn(){
+  const p = new GoogleAuthProvider();
+  try { await signInWithPopup(S.auth, p); }
+  catch(e){ if (e?.code==="auth/popup-blocked" || e?.code==="auth/operation-not-supported-in-this-environment") signInWithRedirect(S.auth, p); else if (e?.code!=="auth/popup-closed-by-user") toast("Sign in failed ("+e.code+")"); }
+}
+function viewNotAdmin(){
+  return [h("div",{class:"panel", style:"margin-top:24px"},
+    h("h2",{style:"margin-top:0"},"This Google account isn't the organiser"),
+    h("p",null,"If you're setting the league up, this is your UID. Paste it into ADMIN_UID in index.html and into firestore.rules, publish both, then reload."),
+    h("input",{type:"text", readonly:true, value:S.uid, "aria-label":"Your UID", onfocus:e=>e.target.select()}),
+    h("button",{class:"btn ghost", style:"margin-top:12px", onclick:()=>signOut(S.auth)},"Sign out"))];
+}
+
+function render(){
+  const app = document.getElementById("app");
+  const header = h("header",{class:"top"}, h("div",{class:"inner"},
+    h("h1",null,"The League"), h("div",{class:"season"}, S.settings?.season || "")));
+  const main = h("main",{class:"wrap"});
+  const bare = (...kids)=>{ main.append(...kids); app.replaceChildren(header, main); };
+  if (S.phase==="config") return bare(h("div",{class:"panel", style:"margin-top:24px"}, h("h2",{style:"margin-top:0"},"Almost there"), h("p",null,"Paste your Firebase config into FIREBASE_CONFIG at the top of index.html.")));
+  if (S.phase==="pin") return bare(...viewPin());
+  if (S.phase==="notadmin") return bare(...viewNotAdmin());
+  if (!S.ready) return bare(h("p",{class:"muted", style:"margin-top:24px"},"Loading the league…"));
+
+  if (!S.settings && !S.isOwner){
+    main.append(h("div",{class:"panel empty", style:"margin-top:24px"},"The league hasn't been set up yet."));
+  } else if (!S.settings && S.isOwner && S.tab!=="setup"){
+    main.append(h("div",{class:"panel", style:"margin-top:24px"}, h("h2",{style:"margin-top:0"},"Set up your league"),
+      h("p",null,"Set a league PIN, add your players and handicaps, then a course, then your first round."),
+      h("button",{class:"btn", onclick:()=>{S.tab="setup"; render();}},"Start setup")));
+  } else {
+    const v = {table:viewTable, rounds:viewRounds, card:viewCard, setup:viewSetup}[S.tab]();
+    main.append(...v);
+    if (S.tab==="setup" && !S.editCourse && !S.editRound) main.append(...pinSection());
+  }
+  const tabs = [["table","Table"],["rounds","Rounds"],["card","Scorecard"]];
+  if (S.isOwner) tabs.push(["setup","Setup"]);
+  const nav = h("nav",{class:"tabs", "aria-label":"Sections"}, h("div",{class:"inner"},
+    tabs.map(([k,l])=>h("button",{"aria-current":S.tab===k?"page":null, onclick:()=>{
+      if (k==="card" && S.tab!=="card"){ S.cardRound = S.cardRound && S.rounds[S.cardRound] && roundStatus(S.rounds[S.cardRound])!=="complete" ? S.cardRound : null; S.fullCard=false; }
+      if (k!=="setup"){ S.editCourse=null; S.editRound=null; }
+      S.tab=k; render(); window.scrollTo(0,0); }}, l))));
+  app.replaceChildren(header, main, nav);
+}
+function snapRender(){
+  const a = document.activeElement;
+  if (a && /^(INPUT|SELECT)$/.test(a.tagName)){ S.pendingRender=true; return; }
+  render();
+}
+document.addEventListener("focusout", ()=>setTimeout(()=>{
+  const a=document.activeElement;
+  if (S.pendingRender && !(a && /^(INPUT|SELECT)$/.test(a.tagName))){ S.pendingRender=false; render(); }
+},50));
+
+function teardown(){ (S.unsubs||[]).forEach(u=>u()); S.unsubs=[]; S.ready=false; }
+function subscribe(){
+  teardown(); S.phase="ready"; render();
+  let loaded=0; const mark=()=>{ if(++loaded>=4 && !S.ready){ S.ready=true; render(); } };
+  const onErr = e=>{
+    if (e?.code==="permission-denied"){ teardown(); S.phase = S.isOwner ? "ready" : "pin"; render(); if(!S.isOwner) toast("Enter the league PIN to continue"); }
+    else toast("Lost connection to the league. Reload to reconnect");
+  };
+  const fs=S.fs;
+  S.unsubs.push(onSnapshot(doc(fs,"admin/cfg"), s=>{ S.settings = s.exists() ? s.data() : null; mark(); snapRender(); }, onErr));
+  S.unsubs.push(onSnapshot(collection(fs,"admin/cfg/courses"), q=>{ const o={}; q.docs.forEach(d=>o[d.id]={...d.data(), id:d.id}); S.courses=o; mark(); snapRender(); }, onErr));
+  S.unsubs.push(onSnapshot(collection(fs,"admin/cfg/rounds"), q=>{ const o={}; q.docs.forEach(d=>o[d.id]={...d.data(), id:d.id}); S.rounds=o; mark(); snapRender(); }, onErr));
+  S.unsubs.push(onSnapshot(collection(fs,"cards"), q=>{
+    const o={}; q.docs.forEach(d=>o[d.id]=d.data()); S.cards=o;
+    for (const id of Object.keys(S.local)) if (JSON.stringify(o[id]?.strokes)===JSON.stringify(S.local[id])) delete S.local[id];
+    mark(); snapRender();
+  }, onErr));
+}
+
+function boot(){
+  if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith("PASTE")){ S.phase="config"; render(); return; }
+  const app = initializeApp(FIREBASE_CONFIG);
+  S.fs = initializeFirestore(app, {localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()})});
+  S.auth = getAuth(app);
+  const fs = S.fs;
+  S.db = { doc: p => ({ set: d=>setDoc(doc(fs,p),d), update: d=>updateDoc(doc(fs,p),d), delete: ()=>deleteDoc(doc(fs,p)) }) };
+  render();
+  onAuthStateChanged(S.auth, u=>{
+    teardown();
+    if (!u){ signInAnonymously(S.auth).catch(e=>toast("Couldn't connect ("+e.code+")")); return; }
+    S.uid = u.uid;
+    S.isOwner = !u.isAnonymous && u.uid===ADMIN_UID;
+    if (!u.isAnonymous && !S.isOwner){ S.phase="notadmin"; render(); return; }
+    if (!S.isOwner && S.tab==="setup") S.tab="table";
+    subscribe();
+  });
+}
+boot();
+</script>
+</body>
+</html>

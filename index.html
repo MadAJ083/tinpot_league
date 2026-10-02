@@ -3,33 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>The League</title>
-<meta name="theme-color" content="#0F4D32">
+<title>Tinpot Tour</title>
+<meta name="theme-color" content="#0A1F44">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800;1,900&family=Archivo+Narrow:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F3F5F1; --panel:#FFFFFF; --ink:#18201B; --muted:#5E6A62; --rule:#D5DCD4;
-  --green:#0F4D32; --green-2:#1D6B47; --green-soft:#E3EEE6; --red:#C8102E; --red-soft:#FBE7EA;
-  --gold:#A87B12; --on-green:#FFFFFF;
-  --cond:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
-  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --bg:#EEF1F6; --panel:#FFFFFF; --ink:#0E1726; --muted:#56627A; --rule:#D5DBE5; --steel:#E2E7EF;
+  --navy:#0A1F44; --navy-ink:#0A1F44; --on-navy:#FFFFFF; --sub-navy:#B9C6DD; --navy-line:#2C4A82;
+  --red:#D0202E; --red-ink:#D0202E; --red-soft:#FBE4E6; --av-bg:#C9D3E3; --av-fg:#8394B3;
+  --narrow:"Archivo Narrow","Arial Narrow",Arial,sans-serif;
+  --body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0D1310; --panel:#151D18; --ink:#E6ECE7; --muted:#95A39A; --rule:#2A352E;
-    --green:#1F7A50; --green-2:#2E9464; --green-soft:#17281F; --red:#FF5C6C; --red-soft:#2E161A;
-    --gold:#E0B64A; --on-green:#FFFFFF;
+    --bg:#0A1120; --panel:#121B2D; --ink:#E7ECF4; --muted:#9AA6BC; --rule:#24304A; --steel:#1A2540;
+    --navy:#0A1F44; --navy-ink:#C9D6EE; --on-navy:#FFFFFF; --sub-navy:#B9C6DD; --navy-line:#2C4A82;
+    --red:#D0202E; --red-ink:#FF7A84; --red-soft:#3A1A20; --av-bg:#2A3956; --av-fg:#6F82A6;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#0D1310; --panel:#151D18; --ink:#E6ECE7; --muted:#95A39A; --rule:#2A352E;
-  --green:#1F7A50; --green-2:#2E9464; --green-soft:#17281F; --red:#FF5C6C; --red-soft:#2E161A;
-  --gold:#E0B64A; --on-green:#FFFFFF;
+  --bg:#0A1120; --panel:#121B2D; --ink:#E7ECF4; --muted:#9AA6BC; --rule:#24304A; --steel:#1A2540;
+  --navy:#0A1F44; --navy-ink:#C9D6EE; --on-navy:#FFFFFF; --sub-navy:#B9C6DD; --navy-line:#2C4A82;
+  --red:#D0202E; --red-ink:#FF7A84; --red-soft:#3A1A20; --av-bg:#2A3956; --av-fg:#6F82A6;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
@@ -37,99 +37,180 @@ html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
-:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
 .wrap{max-width:640px;margin:0 auto;padding:0 16px 110px}
 
-header.top{background:var(--green);color:var(--on-green);padding:18px 16px 16px}
-header.top .inner{max-width:640px;margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
-header.top h1{font-family:var(--cond);font-weight:700;font-size:34px;line-height:1;margin:0;letter-spacing:.01em}
-header.top .season{font-family:var(--cond);font-size:18px;opacity:.85;font-weight:500}
+header.top{background:var(--navy);color:var(--on-navy);padding:14px 16px;border-bottom:4px solid var(--red)}
+header.top .inner{max-width:640px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:900;font-style:italic;font-size:21px;letter-spacing:.02em}
+header.top .season{font-family:var(--narrow);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border:1px solid #5872A3;border-radius:4px;padding:3px 8px}
 
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom,0px);z-index:10}
 nav.tabs .inner{max-width:640px;margin:0 auto;display:flex}
-nav.tabs button{flex:1;border:0;background:none;padding:12px 4px 14px;font-family:var(--cond);font-size:17px;font-weight:600;color:var(--muted);border-top:3px solid transparent}
-nav.tabs button[aria-current="page"]{color:var(--green-2);border-top-color:var(--green-2)}
+nav.tabs button{flex:1;min-width:0;border:0;background:none;min-height:56px;padding:0 2px;font-family:var(--narrow);font-size:14px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);border-top:3px solid transparent}
+nav.tabs button[aria-current="page"]{color:var(--navy-ink);font-weight:800;border-top-color:var(--red)}
 
-h2{font-family:var(--cond);font-weight:700;font-size:26px;margin:26px 0 10px;line-height:1.1}
-h3{font-family:var(--cond);font-weight:600;font-size:20px;margin:18px 0 8px}
+.pagehead{margin:20px 0 12px}
+.pagehead h2{margin:0}
+h2{font-weight:800;font-size:24px;margin:24px 0 10px;line-height:1.1;text-transform:uppercase}
+h3{font-weight:700;font-size:18px;margin:18px 0 8px;text-transform:uppercase;letter-spacing:.02em}
+.sub,.eyebrow{font-family:var(--narrow);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.sub{color:var(--muted)}
+.eyebrow{display:flex;align-items:center;gap:6px}
+.eyebrow.red{color:var(--red-ink)}
 p{margin:0 0 10px}
 .muted{color:var(--muted)}
 .small{font-size:14px}
+.num{font-family:var(--narrow);font-weight:700}
+.title-it{font-weight:800;font-style:italic;text-transform:uppercase;line-height:1.1}
 
-.panel{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:14px}
 .stack>*+*{margin-top:12px}
 
-/* The honours board: the one loud element */
-.board{background:var(--panel);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
-.board-row{color:inherit;font:inherit;cursor:pointer;display:grid;grid-template-columns:48px 1fr auto;align-items:center;border-bottom:1px solid var(--rule);background:none;border-left:0;border-right:0;border-top:0;width:100%;text-align:left;padding:0}
-.board-row:last-child{border-bottom:0}
-.pos{font-family:var(--cond);font-weight:700;font-size:28px;text-align:center;color:var(--muted);padding:14px 0}
-.board-row.first .pos{color:var(--gold)}
-.pname{padding:12px 6px}
-.pname strong{display:block;font-family:var(--cond);font-size:24px;font-weight:600;line-height:1.1}
-.pname span{font-size:13px;color:var(--muted)}
-.pts{font-family:var(--cond);font-weight:700;font-size:38px;line-height:1;background:var(--green);color:var(--on-green);min-width:78px;text-align:center;padding:14px 10px;align-self:stretch;display:flex;align-items:center;justify-content:center}
-.board-row.first .pts{background:var(--red)}
-.board-detail{padding:4px 14px 14px 48px;border-bottom:1px solid var(--rule);font-size:14px}
+/* Players: placeholder mugshot, flag, name */
+.who{display:flex;align-items:center;gap:9px;min-width:0}
+.who strong{font-weight:700;text-transform:uppercase;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{flex-shrink:0;border-radius:50%;background:var(--av-bg);color:var(--av-fg);overflow:hidden;display:inline-flex;align-items:flex-end;justify-content:center}
+.av.sq{border-radius:8px;border-bottom:3px solid var(--red)}
+.flag{flex-shrink:0;display:block}
+
+/* Cup leader */
+.leader{background:var(--panel);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.leader .top{display:flex;gap:14px;align-items:center;padding:12px 16px}
+.leader .name{font-size:24px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--rule)}
+.stats>div{padding:8px 16px;display:flex;flex-direction:column;border-right:1px solid var(--rule)}
+.stats>div:last-child{border-right:0}
+.stats .num{font-size:26px;line-height:1;color:var(--navy-ink)}
+.stats span:last-child{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+
+/* Next tournament */
+.next{background:var(--panel);border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-top:12px}
+.next .strip{background:var(--navy);color:var(--on-navy);padding:7px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.next .body{padding:10px 16px 12px}
+.next .when{font-size:19px}
+
+.champ-banner{display:flex;align-items:center;gap:12px;width:100%;margin-bottom:12px;padding:12px 16px;border:0;border-radius:8px;background:var(--navy);color:var(--on-navy);text-align:left}
+.champ-banner>span{flex:1;display:flex;flex-direction:column}
+.champ-banner strong{text-transform:uppercase;font-style:italic;font-weight:900}
+.champ-banner span span{font-size:14px;color:var(--sub-navy)}
+
+/* Standings table */
+.board{background:var(--panel);border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-top:12px}
+.board-head,.board-row{display:grid;grid-template-columns:44px minmax(0,1fr) 54px 58px;align-items:center}
+.board-head{background:var(--steel);padding:7px 0;font-family:var(--narrow);font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--navy-ink)}
+.board-head span:not(:nth-child(2)){text-align:center}
+.board-row{color:inherit;font:inherit;cursor:pointer;min-height:58px;border:0;border-top:1px solid var(--rule);background:none;width:100%;text-align:left;padding:0}
+.pos{font-family:var(--narrow);font-weight:700;font-size:22px;text-align:center;color:var(--navy-ink)}
+.board-row.first .pos{color:var(--red-ink)}
+.board-row .ev{text-align:center;font-family:var(--narrow);font-weight:600;font-size:17px;color:var(--muted)}
+.board-row .pts{text-align:center;font-family:var(--narrow);font-weight:700;font-size:24px;color:var(--navy-ink)}
+.board-detail{padding:4px 14px 14px 44px;border-top:1px solid var(--rule);font-size:14px}
 .board-detail table{width:100%;border-collapse:collapse}
 .board-detail td{padding:4px 0;border-bottom:1px dashed var(--rule)}
-.board-detail td:last-child{text-align:right;font-family:var(--cond);font-size:17px;font-weight:600}
+.board-detail td:last-child{text-align:right;font-family:var(--narrow);font-size:17px;font-weight:700}
 .dropped td{color:var(--muted);text-decoration:line-through}
 
-.badge{display:inline-block;font-family:var(--cond);font-weight:600;font-size:14px;padding:1px 8px;border-radius:4px;background:var(--green-soft);color:var(--green-2);vertical-align:middle}
-.badge.major{background:var(--red-soft);color:var(--red)}
-.badge.live{background:var(--red);color:#fff}
+.badge{display:inline-block;font-family:var(--narrow);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:3px;background:var(--steel);color:var(--navy-ink);vertical-align:middle}
+.badge.major,.badge.live{background:var(--red);color:#fff}
+.badge.final{background:var(--navy);color:#fff}
 
-.next{display:flex;justify-content:space-between;gap:12px;align-items:center;border-left:5px solid var(--red)}
-.next .when{font-family:var(--cond);font-size:22px;font-weight:700;line-height:1.1}
-
-.btn{border:1px solid var(--green-2);background:var(--green-2);color:#fff;border-radius:8px;padding:10px 16px;font-weight:600}
-.btn.ghost{background:none;color:var(--green-2)}
-.btn.danger{background:none;border-color:var(--red);color:var(--red)}
-.btn.big{width:100%;padding:15px;font-size:18px}
+.btn{border:2px solid var(--navy);background:var(--navy);color:#fff;border-radius:6px;min-height:44px;padding:8px 16px;font-weight:700;white-space:nowrap}
+.btn.red{border-color:var(--red);background:var(--red)}
+.btn.ghost{background:none;color:var(--navy-ink);border-color:var(--navy-ink)}
+.btn.danger{background:none;border-color:var(--red-ink);color:var(--red-ink)}
+.btn.big{width:100%;padding:13px;font-size:17px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .spread{display:flex;justify-content:space-between;align-items:center;gap:10px}
 
+/* Schedule */
+.event{background:var(--panel);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.event .head{display:flex}
+.event .date{width:62px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;background:var(--steel);color:var(--navy-ink)}
+.event.major .date{background:var(--red);color:#fff}
+.event.final .date{background:var(--navy);color:#fff}
+.event .date .m{font-family:var(--narrow);font-weight:700;font-size:13px;letter-spacing:.08em}
+.event .date .d{font-family:var(--narrow);font-weight:700;font-size:24px;line-height:1}
+.event .info{flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.event .tail{padding:0 14px 12px}
+.finale{border:2px solid var(--navy-ink);border-radius:8px;overflow:hidden;background:var(--panel)}
+.finale .strip{background:var(--navy);color:#fff;padding:7px 14px}
+.finale .body{padding:12px 14px}
+
 label.field{display:block;margin-bottom:12px}
 label.field>span{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
-input[type=text],input[type=number],input[type=date],select{width:100%;padding:10px;border:1px solid var(--rule);border-radius:8px;background:var(--bg)}
+input[type=text],input[type=number],input[type=date],select{width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--rule);border-radius:6px;background:var(--bg)}
 input.tiny{width:64px;padding:8px;text-align:center}
 .check{display:flex;gap:10px;align-items:center;padding:6px 0}
 .check input{width:20px;height:20px}
+.pcard{border:1px solid var(--rule);border-radius:8px;padding:10px;margin-bottom:10px}
+.pcard .row{flex-wrap:nowrap}
 
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table.grid{border-collapse:collapse;font-size:14px;min-width:100%}
 table.grid th,table.grid td{border:1px solid var(--rule);padding:6px 5px;text-align:center}
-table.grid th{font-family:var(--cond);font-weight:600;font-size:15px;background:var(--green-soft)}
-table.grid td.name{text-align:left;white-space:nowrap;font-weight:600}
-table.grid td.tot{font-family:var(--cond);font-weight:700;font-size:16px}
+table.grid th{font-family:var(--narrow);font-weight:700;font-size:14px;background:var(--navy);color:#fff;border-color:var(--navy)}
+table.grid tr.par td{background:var(--steel);font-weight:600}
+table.grid td.name{text-align:left;white-space:nowrap;font-weight:700}
+table.grid td.tot{font-family:var(--narrow);font-weight:700;font-size:16px}
+/* Tour style marks: circle for 3+ points, box for 1, double box for 0 */
+.mk{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;font-weight:700}
+.mk.c{border:1.5px solid var(--red-ink);border-radius:50%;color:var(--red-ink)}
+.mk.s{border:1.5px solid var(--navy-ink)}
+.mk.d{border:1.5px solid var(--navy-ink);outline:1.5px solid var(--navy-ink);outline-offset:2px;width:20px;height:20px}
 
 /* Scorecard */
-.holes{display:flex;gap:6px;padding:4px 0 8px}
-.holes button{flex:0 0 36px;height:36px;border-radius:50%;border:1px solid var(--rule);background:var(--panel);font-family:var(--cond);font-weight:600;font-size:16px}
-.holes button.done{background:var(--green-soft);border-color:var(--green-2)}
-.holes button.cur{background:var(--green-2);color:#fff;border-color:var(--green-2)}
-.hole-head{display:flex;align-items:baseline;justify-content:space-between;margin:10px 0}
-.hole-head .no{font-family:var(--cond);font-weight:700;font-size:44px;line-height:1}
-.hole-head .meta{font-family:var(--cond);font-size:22px;font-weight:600;text-align:right}
-.player{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center}
-.player .who strong{font-family:var(--cond);font-size:22px;font-weight:600}
-.player .who .dots{color:var(--red);letter-spacing:2px;font-size:14px}
+.holes{display:flex;gap:5px;padding:4px 0 8px}
+.holes button{flex:0 0 36px;height:40px;border-radius:4px;border:1px solid var(--rule);background:var(--panel);font-family:var(--narrow);font-weight:700;font-size:17px}
+.holes button.done{background:var(--navy);border-color:var(--navy);color:#fff}
+.holes button.cur{background:var(--red);border-color:var(--red);color:#fff}
+.hole-head{display:flex;align-items:flex-end;justify-content:space-between;margin:10px 0;padding-bottom:8px;border-bottom:2px solid var(--navy-ink)}
+.hole-head .no{font-weight:900;font-style:italic;font-size:40px;line-height:1;color:var(--navy-ink);text-transform:uppercase}
+.hole-head .meta{font-family:var(--narrow);font-size:22px;font-weight:700;text-align:right;line-height:1.1}
+.player{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center}
+.player .who strong{font-size:16px;white-space:normal;line-height:1.15}
+.player .dots{color:var(--red-ink);letter-spacing:2px;font-size:13px}
 .stepper{display:flex;align-items:center;gap:6px}
-.stepper button{width:48px;height:48px;border-radius:10px;border:1px solid var(--rule);background:var(--bg);font-size:26px;font-weight:600;line-height:1}
-.stepper .val{min-width:48px;text-align:center;font-family:var(--cond);font-weight:700;font-size:38px}
-.player .foot{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;font-size:14px;color:var(--muted)}
-.hp{font-family:var(--cond);font-weight:700;font-size:20px;color:var(--ink);background:var(--green-soft);border-radius:6px;padding:0 8px}
-.hp.zero{background:var(--red-soft);color:var(--red)}
-.pick{border:1px dashed var(--rule);background:none;border-radius:6px;padding:4px 10px;font-size:13px}
-.pick.on{border-style:solid;border-color:var(--red);color:var(--red)}
+.stepper button{width:46px;height:46px;border-radius:6px;border:1px solid var(--rule);background:var(--bg);font-size:24px;font-weight:700;line-height:1;color:var(--navy-ink)}
+.stepper .val{min-width:44px;text-align:center;font-family:var(--narrow);font-weight:700;font-size:34px;color:var(--navy-ink)}
+.player .foot{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+.hp{font-family:var(--narrow);font-weight:700;font-size:16px;color:var(--navy-ink);background:var(--steel);border-radius:4px;padding:1px 7px}
+.hp.good{background:var(--red);color:#fff}
+.hp.zero{background:var(--red-soft);color:var(--red-ink)}
+.pick{border:1px dashed var(--rule);background:none;border-radius:6px;min-height:36px;padding:4px 10px;font-size:13px}
+.pick.on{border-style:solid;border-color:var(--red-ink);color:var(--red-ink)}
 .navrow{display:flex;gap:10px;margin-top:14px}
 .navrow .btn{flex:1}
 
-.result{width:100%;border-collapse:collapse;margin-top:8px}
-.result td{padding:5px 0;border-top:1px solid var(--rule)}
-.result td.n{text-align:right;font-family:var(--cond);font-size:18px;font-weight:600;width:70px}
+.result{width:100%;border-collapse:collapse;font-size:14px}
+.result th{background:var(--steel);font-family:var(--narrow);font-weight:700;font-size:11px;letter-spacing:.1em;color:var(--navy-ink);padding:6px 0;text-align:left}
+.result td{padding:6px 0;border-top:1px solid var(--rule)}
+.result .n{text-align:right;font-family:var(--narrow);font-size:16px;font-weight:700;width:64px}
+.result th.n{font-size:11px}
+.result .p{width:34px;text-align:center;font-family:var(--narrow);font-weight:700;font-size:16px}
+.result th.p{font-size:11px}
+
+/* Tour Champion */
+.champ{margin:0 -16px;background:var(--navy);color:#fff;overflow:hidden}
+.champ-hero{position:relative;height:270px;display:flex;align-items:flex-end;justify-content:center}
+.champ-year{position:absolute;top:6px;left:0;right:0;text-align:center;font-weight:900;font-style:italic;font-size:150px;line-height:1;color:transparent;-webkit-text-stroke:1.5px var(--navy-line)}
+.champ-hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:64px;background:var(--red)}
+.champ-hero .av{position:relative;z-index:1;border-radius:12px 12px 0 0;border:4px solid #fff;border-bottom:0;background:#C9D3E3;color:#8394B3}
+.champ-band{background:var(--red);padding:12px 20px 18px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.champ-band h2{margin:0;font-weight:900;font-style:italic;font-size:38px;line-height:1}
+.champ-country{display:flex;align-items:center;gap:7px;font-weight:600}
+.champ-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;color:#0A1F44}
+.champ-stats>div{padding:12px 0;display:flex;flex-direction:column;align-items:center;border-right:1px solid #D5DBE5}
+.champ-stats>div:last-child{border-right:0}
+.champ-stats .num{font-size:28px;line-height:1}
+.champ-stats span:last-child{font-size:11px;font-weight:700;letter-spacing:.08em;color:#56627A}
+.champ-rest{padding:16px 16px 20px}
+.champ-rest .eyebrow{color:var(--sub-navy);margin-bottom:6px}
+.champ-row{display:grid;grid-template-columns:30px minmax(0,1fr) 60px;align-items:center;min-height:52px;border-bottom:1px solid var(--navy-line)}
+.champ-row .p{font-family:var(--narrow);font-weight:700;font-size:20px;color:var(--sub-navy)}
+.champ-row .n{text-align:right;font-family:var(--narrow);font-weight:700;font-size:20px}
+.champ-rest p{margin:12px 0 0;font-size:13px;color:var(--sub-navy)}
 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:20;max-width:90%;font-size:15px}
 .empty{text-align:center;padding:30px 10px}
@@ -158,8 +239,10 @@ import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithPopup, signInWithRedirect, GoogleAuthProvider, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 /* ---------- constants ---------- */
-const TYPES = { standard:{label:"Standard", mult:1}, major:{label:"Major", mult:2}, final:{label:"The Final", mult:2} };
+// The keys are stored on rounds, so only the labels change with the theme
+const TYPES = { standard:{label:"Tour Event", mult:1}, major:{label:"Away Day Major", mult:2}, final:{label:"Tour Championship", mult:2} };
 const POINTS3 = [5,3,1];
+const COUNTRIES = { ENG:"England", SCO:"Scotland", WAL:"Wales", IRL:"Ireland", GBR:"Great Britain" };
 
 /* ---------- state ---------- */
 const S = {
@@ -189,6 +272,13 @@ function h(tag, props, ...kids){
     if (k==null || k===false) continue;
     el.append(k instanceof Node ? k : document.createTextNode(String(k)));
   }
+  return el;
+}
+// Same idea for SVG, which needs its own namespace. Attributes only, no markup strings
+function s(tag, attrs, ...kids){
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k,v] of Object.entries(attrs||{})) el.setAttribute(k, v);
+  el.append(...kids.flat());
   return el;
 }
 function toast(msg){
@@ -273,6 +363,17 @@ function leaderboard(){
   }
   return Object.values(byP).sort((a,b)=>b.total-a.total || b.wins-a.wins || (b.best??-1)-(a.best??-1));
 }
+// Table positions: players level on points share a position. Strict also needs wins and best round level,
+// which is how the champion is decided
+function withPositions(lb, strict){
+  let prev=null, prevPos=0;
+  return lb.map((b,i)=>{
+    const level = prev && prev.total===b.total && (!strict || (prev.wins===b.wins && prev.best===b.best));
+    const pos = level ? prevPos : i+1; prev=b; prevPos=pos; return {...b, pos};
+  });
+}
+// The season closes when its Tour Championship has been played and submitted
+const seasonFinal = () => seasonRounds().filter(r=>r.type==="final" && roundStatus(r)==="complete").sort((a,b)=>a.date<b.date?1:-1)[0];
 function suggestedAdj(forType, date, excludeId){
   if (!S.settings?.adjust || forType!=="standard") return {};
   const prev = seasonRounds().filter(r=>r.id!==excludeId && r.date<=date && r.players.length>=3 && roundStatus(r)==="complete")
@@ -333,41 +434,97 @@ async function setLeaguePin(pin){
   if (pin.length < 6) return toast("Use at least 6 characters. Longer is harder to guess");
   if (await guarded(()=>S.db.doc("secret/pin").set({value:pin}), "League PIN saved. Send it to your mates")) render();
 }
+
+/* ---------- theme pieces ---------- */
+const logo = (w=24) => s("svg",{width:w, height:Math.round(w*30/26), viewBox:"0 0 26 30", fill:"none", "aria-hidden":"true"},
+  s("path",{d:"M13 1.5 24 5v10.5c0 6.5-4.6 11-11 13-6.4-2-11-6.5-11-13V5z", stroke:"currentColor", "stroke-width":2}),
+  s("path",{d:"M10 22V8", stroke:"currentColor", "stroke-width":2, "stroke-linecap":"round"}),
+  s("path",{d:"M10 8.5h7l-2 2.75 2 2.75h-7", fill:"#D0202E", stroke:"#D0202E", "stroke-width":1.5, "stroke-linejoin":"round"}));
+const trophy = (w=18) => s("svg",{width:w, height:w, viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", "stroke-width":2, "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true"},
+  s("path",{d:"M7 4h10v5a5 5 0 0 1-10 0z"}), s("path",{d:"M7 6H4v1a3 3 0 0 0 3 3"}), s("path",{d:"M17 6h3v1a3 3 0 0 1-3 3"}), s("path",{d:"M12 14v4"}), s("path",{d:"M8 21h8"}));
+const chevron = () => s("svg",{width:18, height:18, viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", "stroke-width":2.2, "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true"}, s("path",{d:"M9 5l7 7-7 7"}));
+
+function flag(code, w=20){
+  const name = COUNTRIES[code]; if (!name) return null;
+  const R = (x,y,width,height,fill) => s("rect",{x,y,width,height,fill});
+  const parts = {
+    ENG: [R(0,0,22,15,"#FFFFFF"), R(9,0,4,15,"#CE1124"), R(0,5.5,22,4,"#CE1124")],
+    SCO: [R(0,0,22,15,"#005EB8"), s("path",{d:"M0 0L22 15M22 0L0 15", stroke:"#FFFFFF", "stroke-width":2.6})],
+    // St David's cross: the dragon doesn't survive at 20px
+    WAL: [R(0,0,22,15,"#000000"), R(9,0,4,15,"#FFD100"), R(0,5.5,22,4,"#FFD100")],
+    IRL: [R(0,0,7.34,15,"#169B62"), R(7.33,0,7.34,15,"#FFFFFF"), R(14.66,0,7.34,15,"#FF883E")],
+    GBR: [R(0,0,22,15,"#012169"), s("path",{d:"M0 0L22 15M22 0L0 15", stroke:"#FFFFFF", "stroke-width":3}), s("path",{d:"M0 0L22 15M22 0L0 15", stroke:"#C8102E", "stroke-width":1}),
+          R(8.5,0,5,15,"#FFFFFF"), R(0,5,22,5,"#FFFFFF"), R(9.5,0,3,15,"#C8102E"), R(0,6,22,3,"#C8102E")]
+  }[code];
+  return s("svg",{class:"flag", width:w, height:Math.round(w*15/22), viewBox:"0 0 22 15", role:"img", "aria-label":name},
+    ...parts, s("rect",{x:.5, y:.5, width:21, height:14, fill:"none", stroke:"rgba(0,0,0,.2)"}));
+}
+// Mugshots are placeholders for now. When photos arrive, this is the one place that changes
+function avatar(size=38, cls="av"){
+  return h("span",{class:cls, style:`width:${size}px;height:${Math.round(size*(cls.includes("sq")||cls.includes("tall")?1.12:1))}px`, "aria-hidden":"true"},
+    s("svg",{width:Math.round(size*.86), height:Math.round(size*.86), viewBox:"0 0 24 24", fill:"currentColor"},
+      s("circle",{cx:12, cy:9, r:5}), s("path",{d:"M2 24c0-6 4.5-9 10-9s10 3 10 9z"})));
+}
+function who(pid, size=38){
+  return h("span",{class:"who"}, avatar(size), flag(playerById(pid)?.country), h("strong",null,pname(pid)));
+}
+const stat = (n,label) => h("div",null, h("span",{class:"num"}, n), h("span",null,label));
+
 /* ---------- views ---------- */
 function roundLabel(r){
   const c = S.courses[r.courseId]; const tee = c?.tees.find(t=>t.id===r.teeId);
   return (c?.name||"Unknown course") + (tee ? ", "+tee.name+" tees" : "");
 }
-function typeBadge(r){ return r.type==="standard" ? null : h("span",{class:"badge major"}, TYPES[r.type].label+" x2"); }
+function typeBadge(r){ return r.type==="standard" ? null : h("span",{class:"badge "+r.type}, TYPES[r.type].label+" ×2"); }
 
 function viewTable(){
-  const out = [];
+  const out = [h("div",{class:"pagehead"}, h("h2",null,"Tinpot Cup Standings"), h("div",{class:"sub"},"Race to the Tour Championship"))];
+  const closed = !!seasonFinal();
+  if (closed) out.push(h("button",{class:"champ-banner", onclick:()=>{S.tab="champion"; render(); window.scrollTo(0,0);}},
+    trophy(24), h("span",null, h("strong",null,"Season complete"), h("span",null,"Meet the Tinpot Tour Champion")), chevron()));
+
+  // Once the season is closed the tiebreaks have settled every position
+  const lb = withPositions(leaderboard(), closed);
+  if (!lb.length) return [...out, h("div",{class:"panel empty muted"},"No players yet.")];
+
+  const top = lb[0];
+  if (top.entries.length){
+    const outright = !lb[1] || lb[1].total < top.total;
+    out.push(h("section",{class:"leader"},
+      h("div",{class:"top"}, avatar(72,"av sq"),
+        h("div",{style:"min-width:0"},
+          h("div",{class:"eyebrow red"}, closed ? "Tinpot Tour Champion" : outright ? "Cup leader" : "Joint leader"),
+          h("div",{class:"title-it name"}, pname(top.pid)),
+          playerById(top.pid)?.country ? h("div",{class:"row small muted", style:"gap:6px;margin-top:4px"}, flag(playerById(top.pid).country), COUNTRIES[playerById(top.pid).country]) : null)),
+      h("div",{class:"stats"}, stat(fmtPts(top.total),"CUP PTS"), stat(top.entries.length,"EVENTS"), stat(top.wins,"WINS"))));
+  }
+
   const up = seasonRounds().filter(r=>roundStatus(r)!=="complete").sort((a,b)=>a.date<b.date?-1:1);
   const live = up.find(r=>roundStatus(r)==="live");
   const next = live || up.find(r=>r.date>=today()) || up[0];
   if (next){
     const isLive = roundStatus(next)==="live";
-    out.push(h("div",{class:"panel next", style:"margin-top:18px"},
-      h("div",null,
-        h("div",{class:"small muted"}, isLive ? "In play now" : "Next round"),
-        h("div",{class:"when"}, fmtDate(next.date)),
-        h("div",null, roundLabel(next), " ", typeBadge(next))),
-      h("button",{class:"btn", onclick:()=>{S.cardRound=next.id; S.hole=firstOpenHole(next); S.tab="card"; render();}}, isLive?"Live card":"Scorecard")));
+    out.push(h("section",{class:"next"},
+      h("div",{class:"strip"}, h("span",{class:"eyebrow"}, isLive ? "In play now" : "Next tournament"), typeBadge(next)),
+      h("div",{class:"body"},
+        h("div",{class:"title-it when"}, fmtDate(next.date)),
+        h("div",{class:"small muted"}, roundLabel(next)),
+        h("div",{class:"spread", style:"margin-top:8px"},
+          h("span",{class:"small", style:"font-weight:600"}, "Winner earns "+5*(TYPES[next.type]?.mult||1)+" Cup pts"),
+          h("button",{class:"btn red", onclick:()=>{S.cardRound=next.id; S.hole=firstOpenHole(next); S.tab="card"; render();}}, isLive?"Live card":"Scorecard")))));
   }
-  out.push(h("h2",null,"League table"));
-  const lb = leaderboard();
-  if (!lb.length) return [...out, h("div",{class:"panel empty muted"},"No players yet.")];
-  const board = h("div",{class:"board"});
-  let prevTotal=null, prevPos=0;
-  lb.forEach((b,i)=>{
-    const pos = (prevTotal===b.total) ? prevPos : i+1; prevTotal=b.total; prevPos=pos;
+
+  const board = h("div",{class:"board"},
+    h("div",{class:"board-head"}, h("span",null,"RANK"), h("span",null,"PLAYER"), h("span",null,"EVENTS"), h("span",null,"PTS")));
+  lb.forEach(b=>{
     const counted = b.entries.filter(e=>e.counted).length;
     const open = S.openPlayer===b.pid;
-    board.append(h("button",{class:"board-row"+(pos===1&&b.total>0?" first":""), "aria-expanded":String(open),
+    board.append(h("button",{class:"board-row"+(b.pos===1&&b.total>0?" first":""), "aria-expanded":String(open),
+      "aria-label":`${pname(b.pid)}, ${b.entries.length ? `${b.entries.length} played, ${counted} counting, ${b.wins} win${b.wins===1?"":"s"}, best ${b.best} pts` : "yet to play"}, ${fmtPts(b.total)} points`,
       onclick:()=>{S.openPlayer=open?null:b.pid; render();}},
-      h("div",{class:"pos"}, b.total>0||b.entries.length? pos : "–"),
-      h("div",{class:"pname"}, h("strong",null,pname(b.pid)),
-        h("span",null, b.entries.length ? `${b.entries.length} played, ${counted} counting, ${b.wins} win${b.wins===1?"":"s"}, best ${b.best} pts` : "Yet to play")),
+      h("div",{class:"pos"}, b.total>0||b.entries.length? b.pos : "–"),
+      who(b.pid),
+      h("div",{class:"ev"}, b.entries.length),
       h("div",{class:"pts"}, fmtPts(b.total))));
     if (open && b.entries.length){
       board.append(h("div",{class:"board-detail"}, h("table",null,
@@ -381,8 +538,8 @@ function viewTable(){
   out.push(board);
   const bo = +S.settings.bestOf;
   out.push(h("p",{class:"small muted", style:"margin-top:12px"},
-    `Every round pays 5, 3 and 1. Majors and the Final count double. Ties share the points. `,
-    bo>0 ? `Your best ${bo} rounds count.` : `Every round counts.`, " Tap a name for their rounds."));
+    `Every event pays 5, 3 and 1. Away Day Majors and the Tour Championship count double. Ties share the points. `,
+    bo>0 ? `Your best ${bo} events count.` : `Every event counts.`, " Tap a name for their events."));
   return out;
 }
 const ordinal = n => n + (["th","st","nd","rd"][(n%100>10&&n%100<14)?0:n%10] || "th");
@@ -391,27 +548,52 @@ function firstOpenHole(r){
   return 18;
 }
 
+function dateBlock(iso){
+  const d = new Date(iso+"T12:00:00");
+  return h("div",{class:"date"}, h("span",{class:"m"}, d.toLocaleDateString("en-GB",{month:"short"}).toUpperCase()), h("span",{class:"d"}, d.getDate()));
+}
 function viewRounds(){
-  const out=[h("h2",null,"Rounds")];
-  if (S.isOwner) out.push(h("button",{class:"btn big", onclick:()=>startRoundEditor()},"Set up a round"));
   const rs = seasonRounds().sort((a,b)=>a.date<b.date?1:-1);
-  if (!rs.length){ out.push(h("div",{class:"panel empty muted", style:"margin-top:12px"}, S.isOwner?"No rounds yet. Set one up and it'll appear on everyone's phone.":"No rounds set up yet.")); return out; }
-  const list = h("div",{class:"stack", style:"margin-top:14px"});
+  const closed = !!seasonFinal();
+  const played = rs.filter(r=>roundStatus(r)==="complete").length;
+  const out=[h("div",{class:"pagehead"}, h("h2",null,"Schedule"))];
+  out.push(h("div",{class:"spread", style:"margin-bottom:12px"},
+    h("div",null,
+      h("div",{class:"eyebrow", style:"color:var(--navy-ink)"}, closed ? "Season closed" : `Open season · ${played} event${played===1?"":"s"} played`),
+      h("div",{class:"small muted"}, closed ? "Rename the season in Setup to start a new one" : "Add as many events as you like")),
+    S.isOwner && !closed ? h("button",{class:"btn red", onclick:()=>startRoundEditor()},"New event") : null));
+
+  if (!rs.some(r=>r.type==="final")){
+    out.push(h("section",{class:"finale"},
+      h("div",{class:"strip eyebrow"}, trophy(16), "Season finale · ×2"),
+      h("div",{class:"body"},
+        h("div",{class:"title-it", style:"font-size:20px;font-weight:900;color:var(--navy-ink)"},"Tour Championship"),
+        h("p",{class:"small muted", style:"margin:4px 0 0"},"Set it up when you're ready to finish. Once it's played the season closes and the Tinpot Tour Champion is crowned."),
+        S.isOwner ? h("button",{class:"btn", style:"margin-top:10px", onclick:()=>startRoundEditor(null,"final")},"Set up the Tour Championship") : null)));
+  }
+  if (!rs.length){ out.push(h("div",{class:"panel empty muted", style:"margin-top:12px"}, S.isOwner?"No events yet. Set one up and it'll appear on everyone's phone.":"No events set up yet.")); return out; }
+
+  const list = h("div",{class:"stack", style:"margin-top:12px"});
   for (const r of rs){
-    const st = roundStatus(r); const c = S.courses[r.courseId];
-    const p = h("div",{class:"panel"},
-      h("div",{class:"spread"},
-        h("div",null, h("strong",{style:"font-family:var(--cond);font-size:21px"}, fmtDate(r.date)), " ", typeBadge(r), " ",
-          st==="live"?h("span",{class:"badge live"},"Live"):st==="complete"?h("span",{class:"badge"},"Final"):null),
-      ),
-      h("div",{class:"muted small"}, roundLabel(r)));
+    const st = roundStatus(r);
+    const card = h("section",{class:"event "+r.type},
+      h("div",{class:"head"}, dateBlock(r.date),
+        h("div",{class:"info"},
+          h("div",{class:"spread"},
+            h("span",{class:"eyebrow", style:"color:var(--navy-ink)"}, TYPES[r.type].label+(TYPES[r.type].mult>1?" · ×2":"")),
+            st==="live"?h("span",{class:"badge live"},"Live"):st==="complete"?h("span",{class:"badge"},"Final"):null),
+          h("div",{class:"small muted"}, roundLabel(r)))));
+    const tail = h("div",{class:"tail"});
     if (st==="complete"){
-      p.append(h("table",{class:"result"}, roundResults(r).map(x=>h("tr",null,
-        h("td",null, ordinal(x.pos)+"  "+pname(x.pid)+"  (plays off "+(r.hcp?.[x.pid]?.ph??"?")+")"),
-        h("td",{class:"n"}, x.score+" pts"),
-        h("td",{class:"n"}, "+"+fmtPts(x.pts))))));
+      tail.append(h("table",{class:"result"},
+        h("tr",null, h("th",{class:"p"},"POS"), h("th",null,"PLAYER"), h("th",{class:"n"},"STABLEFORD"), h("th",{class:"n"},"CUP")),
+        roundResults(r).map(x=>h("tr",null,
+          h("td",{class:"p"}, x.pos),
+          h("td",null, h("span",{class:"who"}, flag(playerById(x.pid)?.country,18), h("strong",null,pname(x.pid))), h("span",{class:"muted"}," plays off "+(r.hcp?.[x.pid]?.ph??"?"))),
+          h("td",{class:"n"}, x.score),
+          h("td",{class:"n"}, "+"+fmtPts(x.pts))))));
     } else {
-      p.append(h("p",{class:"small", style:"margin:6px 0 0"}, r.players.map(pid=>pname(pid)+" "+(r.hcp?.[pid]?.ph??"")).join(", ")));
+      tail.append(h("div",{class:"row small", style:"gap:14px"}, r.players.map(pid=>h("span",{class:"who"}, flag(playerById(pid)?.country,18), h("span",null, pname(pid)+" "+(r.hcp?.[pid]?.ph??""))))));
     }
     const actions = h("div",{class:"row", style:"margin-top:10px"});
     actions.append(h("button",{class:"btn ghost", onclick:()=>{S.cardRound=r.id; S.hole=firstOpenHole(r); S.fullCard=st==="complete"; S.tab="card"; render();}}, st==="complete"?"View card":"Open scorecard"));
@@ -420,7 +602,7 @@ function viewRounds(){
       if (st==="complete") actions.append(h("button",{class:"btn ghost", onclick:()=>reopenRound(r)},"Reopen"));
       actions.append(h("button",{class:"btn danger", onclick:()=>deleteRound(r)},"Delete"));
     }
-    p.append(actions); list.append(p);
+    tail.append(actions); card.append(tail); list.append(card);
   }
   out.push(list); return out;
 }
@@ -429,9 +611,9 @@ function viewCard(){
   let r = S.rounds[S.cardRound];
   if (!r){
     const open = seasonRounds().filter(x=>roundStatus(x)!=="complete").sort((a,b)=>a.date<b.date?-1:1);
-    if (!open.length) return [h("h2",null,"Scorecard"), h("div",{class:"panel empty muted"},"No rounds waiting to be played.")];
+    if (!open.length) return [h("div",{class:"pagehead"}, h("h2",null,"Scorecard")), h("div",{class:"panel empty muted"},"No events waiting to be played.")];
     if (open.length===1){ r=open[0]; S.cardRound=r.id; S.hole=firstOpenHole(r); }
-    else return [h("h2",null,"Which round?"), h("div",{class:"stack"}, open.map(x=>h("button",{class:"panel", style:"width:100%;text-align:left",
+    else return [h("div",{class:"pagehead"}, h("h2",null,"Which event?")), h("div",{class:"stack"}, open.map(x=>h("button",{class:"panel", style:"width:100%;text-align:left",
       onclick:()=>{S.cardRound=x.id; S.hole=firstOpenHole(x); render();}}, h("strong",null,fmtDate(x.date)), " ", typeBadge(x), h("div",{class:"small muted"},roundLabel(x)))))];
   }
   const c = S.courses[r.courseId];
@@ -439,12 +621,12 @@ function viewCard(){
   const st = roundStatus(r); const locked = st==="complete" || !S.canWrite;
   const out = [
     h("div",{class:"spread", style:"margin-top:18px"},
-      h("div",null, h("strong",{style:"font-family:var(--cond);font-size:22px"}, fmtDate(r.date)), " ", typeBadge(r), h("div",{class:"small muted"}, roundLabel(r))),
+      h("div",null, h("div",{class:"row", style:"gap:8px"}, h("strong",{class:"title-it", style:"font-size:20px"}, fmtDate(r.date)), typeBadge(r)), h("div",{class:"small muted"}, roundLabel(r))),
       h("button",{class:"btn ghost", onclick:()=>{S.fullCard=!S.fullCard; render();}}, S.fullCard?"Hole view":"Full card"))
   ];
   if (!S.canWrite) out.push(h("p",{class:"small muted", style:"margin-top:8px"},"You can watch scores here but can't enter them."));
-  if (st==="complete") out.push(h("p",{class:"small muted", style:"margin-top:8px"},"This round is finished."+(S.isOwner?" Reopen it from Rounds to make changes.":"")));
-  if (S.fullCard){ out.push(fullCardTable(r,c)); if(!locked) out.push(submitBlock(r)); return out; }
+  if (st==="complete") out.push(h("p",{class:"small muted", style:"margin-top:8px"},"This round is finished."+(S.isOwner?" Reopen it from Schedule to make changes.":"")));
+  if (S.fullCard){ out.push(...fullCardTable(r,c)); if(!locked) out.push(submitBlock(r)); return out; }
 
   const holes = h("div",{class:"holes scroll"});
   for (let i=1;i<=18;i++){
@@ -453,7 +635,7 @@ function viewCard(){
   }
   out.push(holes);
   const i = S.hole-1;
-  out.push(h("div",{class:"hole-head"}, h("div",{class:"no"},"Hole "+S.hole), h("div",{class:"meta"},"Par "+c.par[i], h("div",{class:"small muted"},"Stroke index "+c.si[i]))));
+  out.push(h("div",{class:"hole-head"}, h("div",{class:"no"},"Hole "+S.hole), h("div",{class:"meta"},"Par "+c.par[i], h("div",{class:"small muted", style:"font-family:var(--body);font-weight:400"},"Stroke index "+c.si[i]))));
   const players = h("div",{class:"stack"});
   for (const pid of r.players){
     const ph = r.hcp?.[pid]?.ph ?? 0; const sh = shotsOn(ph, c.si[i]);
@@ -461,8 +643,10 @@ function viewCard(){
     const pts = holePoints(val, c.par[i], sh);
     const set = v => setStroke(r.id,pid,S.hole,v);
     players.append(h("div",{class:"panel player"},
-      h("div",{class:"who"}, h("strong",null,pname(pid)),
-        h("div",{class:"dots"}, sh>0 ? "●".repeat(sh)+(sh===1?" 1 shot":" "+sh+" shots") : sh<0 ? "gives "+(-sh) : h("span",{class:"muted"},"no shot"))),
+      h("div",{class:"who"}, avatar(40),
+        h("div",{style:"min-width:0"},
+          h("div",{class:"who"}, flag(playerById(pid)?.country,18), h("strong",null,pname(pid))),
+          h("div",{class:"dots"}, sh>0 ? "●".repeat(sh)+(sh===1?" 1 shot":" "+sh+" shots") : sh<0 ? "gives "+(-sh) : h("span",{class:"muted"},"no shot")))),
       h("div",{class:"stepper"},
         h("button",{"aria-label":"One fewer for "+pname(pid), disabled:locked, onclick:()=>set(val==null||val==="P" ? Math.max(1,c.par[i]-1) : Math.max(1,val-1))},"−"),
         h("div",{class:"val", "aria-live":"polite"}, val==null?"–":val==="P"?"P":val),
@@ -471,7 +655,7 @@ function viewCard(){
         h("span",null, "Plays off "+ph+", ", stableford(r,pid)+" pts thru "+thru(r,pid)),
         h("span",{class:"row", style:"gap:8px"},
           h("button",{class:"pick"+(val==="P"?" on":""), disabled:locked, onclick:()=>set(val==="P"?null:"P")},"Pick up"),
-          h("span",{class:"hp"+(val!=null&&pts===0?" zero":"")}, val==null?"–":pts+" pts")))));
+          h("span",{class:"hp"+(val==null?"":pts>=3?" good":pts===0?" zero":"")}, val==null?"–":pts+" pts")))));
   }
   out.push(players);
   out.push(h("div",{class:"navrow"},
@@ -483,21 +667,44 @@ function viewCard(){
 function submitBlock(r){
   const ready = r.players.every(p=>thru(r,p)===18);
   return h("div",{style:"margin-top:18px"},
-    h("button",{class:"btn big", disabled:!ready, onclick:()=>submitRound(r)},"Submit scores"),
+    h("button",{class:"btn big red", disabled:!ready, onclick:()=>submitRound(r)},"Submit scores"),
     h("p",{class:"small muted", style:"margin-top:6px"}, ready ? "Check the full card first. Submitting finishes the round and updates the table." : "Every player needs a score or a pick up on all 18 holes."));
 }
 function fullCardTable(r,c){
   const head = h("tr",null, h("th",null,"Hole"), [...Array(18)].map((_,i)=>[h("th",null,i+1), i===8?h("th",null,"Out"):null]), h("th",null,"In"), h("th",null,"Pts"));
-  const par = h("tr",null, h("td",{class:"name"},"Par"), c.par.map((p,i)=>[h("td",null,p), i===8?h("td",null,c.par.slice(0,9).reduce((a,b)=>a+b,0)):null]), h("td",null,c.par.slice(9).reduce((a,b)=>a+b,0)), h("td",null,""));
+  const par = h("tr",{class:"par"}, h("td",{class:"name"},"Par"), c.par.map((p,i)=>[h("td",null,p), i===8?h("td",null,c.par.slice(0,9).reduce((a,b)=>a+b,0)):null]), h("td",null,c.par.slice(9).reduce((a,b)=>a+b,0)), h("td",null,""));
   const rows = r.players.map(pid=>{
     const st = strokesFor(r.id,pid), ph=r.hcp?.[pid]?.ph??0;
     const p = i=>holePoints(st[i],c.par[i],shotsOn(ph,c.si[i]));
     const sum=(a,b)=>{let s=0;for(let i=a;i<b;i++) s+=p(i); return s;};
+    const mark = i => { const n=p(i); return n>=3?" c":n===1?" s":n===0?" d":""; };
     return h("tr",null, h("td",{class:"name"}, pname(pid)+" ("+ph+")"),
-      st.map((v,i)=>[h("td",{title:p(i)+" pts"}, v==null?"":v, v!=null? h("div",{class:"small muted"},p(i)):null), i===8?h("td",{class:"tot"},sum(0,9)):null]),
+      st.map((v,i)=>[h("td",{title:p(i)+" pts"}, v==null?"":h("span",{class:"mk"+mark(i)}, v), v!=null? h("div",{class:"small muted"},p(i)):null), i===8?h("td",{class:"tot"},sum(0,9)):null]),
       h("td",{class:"tot"},sum(9,18)), h("td",{class:"tot"},sum(0,18)));
   });
-  return h("div",{class:"scroll panel", style:"margin-top:12px;padding:0"}, h("table",{class:"grid"}, head, par, rows));
+  return [h("div",{class:"scroll panel", style:"margin-top:12px;padding:0"}, h("table",{class:"grid"}, head, par, rows)),
+    h("p",{class:"small muted", style:"margin-top:8px"},"Circled: 3 or more points. Boxed: 1 point. Double box: no points.")];
+}
+
+function viewChampion(){
+  const fin = seasonFinal();
+  if (!fin) return [h("div",{class:"panel empty muted", style:"margin-top:24px"},"The Tinpot Tour Champion is crowned once the Tour Championship has been played.")];
+  const lb = withPositions(leaderboard(), true); const c = lb[0]; const country = playerById(c.pid)?.country;
+  const majors = c.entries.filter(e=>e.pos===1 && e.r.type==="major").length;
+  const onTheDay = roundResults(fin).find(x=>x.pid===c.pid);
+  const yr = (S.settings?.season||"").match(/\d{4}/)?.[0] || "";
+  return [h("section",{class:"champ"},
+    h("div",{class:"champ-hero"}, yr ? h("span",{class:"champ-year", "aria-hidden":"true"}, yr) : null, avatar(190,"av tall")),
+    h("div",{class:"champ-band"},
+      h("div",{class:"eyebrow"}, trophy(), (yr?yr+" ":"")+"Tinpot Tour Champion"),
+      h("h2",null, pname(c.pid)),
+      country ? h("div",{class:"champ-country"}, flag(country,24), COUNTRIES[country]) : null),
+    h("div",{class:"champ-stats"}, stat(fmtPts(c.total),"CUP PTS"), stat(c.entries.length,"EVENTS"), stat(c.wins,"WINS"), stat(majors,"MAJORS")),
+    h("div",{class:"champ-rest"},
+      h("div",{class:"eyebrow"},"Final standings"),
+      lb.slice(1).map(b=>h("div",{class:"champ-row"}, h("span",{class:"p"}, b.pos), who(b.pid,34), h("span",{class:"n"}, fmtPts(b.total)))),
+      h("p",null, "Crowned at the Tour Championship, "+fmtDate(fin.date)+", "+(S.courses[fin.courseId]?.name||"")+"."+
+        (onTheDay ? " Finished "+ordinal(onTheDay.pos)+" on the day with "+onTheDay.score+" pts." : ""))))];
 }
 
 /* ---------- setup (owner) ---------- */
@@ -507,7 +714,7 @@ function viewSetup(){
   if (S.editRound) return viewRoundEditor();
   if (!S.draftLeague) S.draftLeague = JSON.parse(JSON.stringify(S.settings || blankSettings()));
   const d = S.draftLeague;
-  const out = [h("h2",null,"League settings")];
+  const out = [h("div",{class:"pagehead"}, h("h2",null,"League settings"))];
   const lg = h("div",{class:"panel"},
     h("label",{class:"field"}, h("span",null,"Season name. Changing it starts a fresh table and keeps old rounds."),
       h("input",{type:"text", value:d.season, oninput:e=>d.season=e.target.value})),
@@ -517,23 +724,30 @@ function viewSetup(){
       h("label",{class:"field", style:"flex:1"}, h("span",null,"Handicap allowance %"),
         h("input",{type:"number", inputmode:"numeric", min:"0", max:"100", value:d.allowance, oninput:e=>d.allowance=+e.target.value}))),
     h("label",{class:"check"}, h("input",{type:"checkbox", checked:d.adjust, onchange:e=>d.adjust=e.target.checked}),
-      h("span",null,"Suggest a shot back from the last winner and a shot to last place (standard rounds only)")));
+      h("span",null,"Suggest a shot back from the last winner and a shot to last place (Tour Events only)")));
   out.push(lg);
-  out.push(h("h3",null,"Players"));
+  out.push(h("h3",null,"Player profiles"));
   const pl = h("div",{class:"panel"});
   if (!d.players.length) pl.append(h("p",{class:"muted"},"Add the three of you. Use + for a plus handicap, like +1.2."));
   d.players.forEach((p,idx)=>{
-    pl.append(h("div",{class:"row", style:"margin-bottom:10px;flex-wrap:nowrap"},
-      h("input",{type:"text", "aria-label":"Name", placeholder:"Name", value:p.name, oninput:e=>p.name=e.target.value}),
-      h("input",{type:"text", class:"tiny", inputmode:"decimal", "aria-label":"Handicap index", placeholder:"Index", value:fmtIndex(p.index), oninput:e=>p.index=parseIndex(e.target.value)}),
-      h("button",{class:"btn danger", "aria-label":"Remove "+(p.name||"player"), onclick:()=>{ if(confirm("Remove "+(p.name||"this player")+"? Their past rounds stay in the history.")){ d.players.splice(idx,1); render(); } }},"✕")));
+    pl.append(h("div",{class:"pcard"},
+      h("div",{class:"row", style:"margin-bottom:8px"}, avatar(44),
+        h("input",{type:"text", "aria-label":"Name", placeholder:"Name", value:p.name, oninput:e=>p.name=e.target.value}),
+        h("button",{class:"btn danger", "aria-label":"Remove "+(p.name||"player"), onclick:()=>{ if(confirm("Remove "+(p.name||"this player")+"? Their past rounds stay in the history.")){ d.players.splice(idx,1); render(); } }},"✕")),
+      h("div",{class:"row"},
+        h("input",{type:"text", class:"tiny", inputmode:"decimal", "aria-label":"Handicap index", placeholder:"Index", value:fmtIndex(p.index), oninput:e=>p.index=parseIndex(e.target.value)}),
+        flag(p.country,26),
+        h("select",{"aria-label":"Country for "+(p.name||"player"), style:"flex:1", onchange:e=>{ p.country=e.target.value||null; render(); }},
+          h("option",{value:""},"No flag"),
+          Object.entries(COUNTRIES).map(([k,v])=>h("option",{value:k, selected:p.country===k}, v))))));
   });
+  pl.append(h("p",{class:"small muted"},"Mugshots are placeholders for now."));
   pl.append(h("button",{class:"btn ghost", onclick:()=>{ d.players.push({id:uid("p_"), name:"", index:NaN}); render(); }},"Add player"));
   out.push(pl);
   out.push(h("button",{class:"btn big", style:"margin-top:14px", onclick:async()=>{
     if (d.players.some(p=>!p.name.trim() || !Number.isFinite(p.index))) return toast("Every player needs a name and handicap index");
     if (!d.season.trim()) return toast("Give the season a name");
-    const clean = {...d, players:d.players.map(p=>({id:p.id, name:p.name.trim(), index:+p.index}))};
+    const clean = {...d, players:d.players.map(p=>({id:p.id, name:p.name.trim(), index:+p.index, ...(COUNTRIES[p.country]?{country:p.country}:{})}))};
     if (await guarded(()=>S.db.doc("admin/cfg").set(clean), "Settings saved")){ S.draftLeague=null; render(); }
   }},"Save settings"));
 
@@ -546,13 +760,13 @@ function viewSetup(){
   });
   cl.append(h("button",{class:"btn ghost", onclick:()=>{S.editCourse={id:uid("c_"), name:"", par:Array(18).fill(4), si:Array(18).fill(""), tees:[{id:uid("t_"), name:"Yellow", cr:"", slope:""}], isNew:true}; render(); window.scrollTo(0,0);}},"Add a course"));
   out.push(cl);
-  out.push(h("h2",null,"Rounds"));
-  out.push(h("button",{class:"btn big", onclick:()=>startRoundEditor()},"Set up a round"));
+  out.push(h("h2",null,"Events"));
+  out.push(h("button",{class:"btn big", onclick:()=>startRoundEditor()},"Set up an event"));
   return out;
 }
 function viewCourseEditor(){
   const c = S.editCourse;
-  const out = [h("h2",null, c.isNew?"Add a course":"Edit course"),
+  const out = [h("div",{class:"pagehead"}, h("h2",null, c.isNew?"Add a course":"Edit course")),
     h("p",{class:"small muted"},"Copy par and stroke index from the scorecard. Course rating and slope are on the card or the club's website.")];
   out.push(h("div",{class:"panel"}, h("label",{class:"field"}, h("span",null,"Course name"), h("input",{type:"text", value:c.name, oninput:e=>c.name=e.target.value}))));
   out.push(h("h3",null,"Tees"));
@@ -600,11 +814,11 @@ async function saveCourse(){
   if (await guarded(()=>S.db.doc("admin/cfg/courses/"+c.id).set(clean), "Course saved")){ S.editCourse=null; render(); }
 }
 
-function startRoundEditor(r){
+function startRoundEditor(r, type){
   if (!S.settings?.players?.length) { S.tab="setup"; render(); return toast("Add your players in settings first"); }
   if (!Object.keys(S.courses).length) { S.tab="setup"; render(); return toast("Add a course first"); }
   const c0 = Object.values(S.courses)[0];
-  S.editRound = r ? JSON.parse(JSON.stringify(r)) : {id:uid("r_"), isNew:true, date:today(), courseId:c0.id, teeId:c0.tees[0].id, type:"standard",
+  S.editRound = r ? JSON.parse(JSON.stringify(r)) : {id:uid("r_"), isNew:true, date:today(), courseId:c0.id, teeId:c0.tees[0].id, type:type||"standard",
     players:S.settings.players.map(p=>p.id), hcp:{}, season:S.settings.season};
   const d = S.editRound;
   const sug = r ? {} : suggestedAdj(d.type, d.date, d.id);
@@ -622,19 +836,20 @@ function viewRoundEditor(){
   const d = S.editRound; const c = S.courses[d.courseId];
   if (c && !c.tees.find(t=>t.id===d.teeId)) d.teeId = c.tees[0].id;
   const refreshSug = ()=>{ if(!d.isNew) return; const s=suggestedAdj(d.type,d.date,d.id); for(const p of S.settings.players) d.hcp[p.id].adj = s[p.id]||0; };
-  const out = [h("h2",null, d.isNew?"Set up a round":"Edit round")];
+  const out = [h("div",{class:"pagehead"}, h("h2",null, d.isNew?"Set up an event":"Edit event"))];
   out.push(h("div",{class:"panel"},
     h("label",{class:"field"}, h("span",null,"Date"), h("input",{type:"date", value:d.date, onchange:e=>{d.date=e.target.value; refreshSug(); render();}})),
     h("label",{class:"field"}, h("span",null,"Course"), h("select",{onchange:e=>{d.courseId=e.target.value; d.teeId=S.courses[d.courseId].tees[0].id; render();}},
       Object.values(S.courses).map(x=>h("option",{value:x.id, selected:x.id===d.courseId}, x.name)))),
     h("label",{class:"field"}, h("span",null,"Tees"), h("select",{onchange:e=>{d.teeId=e.target.value; render();}},
       (c?.tees||[]).map(t=>h("option",{value:t.id, selected:t.id===d.teeId}, `${t.name} (${t.cr} / ${t.slope})`)))),
-    h("label",{class:"field"}, h("span",null,"Round type"), h("select",{onchange:e=>{d.type=e.target.value; refreshSug(); render();}},
+    h("label",{class:"field"}, h("span",null,"Event type"), h("select",{onchange:e=>{d.type=e.target.value; refreshSug(); render();}},
       Object.entries(TYPES).map(([k,v])=>h("option",{value:k, selected:k===d.type}, v.label+(v.mult>1?", double points":""))))),
+    d.type==="final" ? h("p",{class:"small muted"},"Once this is played and submitted, the season closes and the Tinpot Tour Champion is crowned.") : null,
     h("div",null, h("span",{class:"small muted"},"Playing (league rounds need all three)"),
       S.settings.players.map(p=>h("label",{class:"check"}, h("input",{type:"checkbox", checked:d.players.includes(p.id),
         onchange:e=>{ d.players = e.target.checked ? [...d.players,p.id] : d.players.filter(x=>x!==p.id); render(); }}), h("span",null,p.name))))));
-  out.push(h("h3",null,"Handicaps for this round"));
+  out.push(h("h3",null,"Handicaps for this event"));
   out.push(h("p",{class:"small muted"},`Course handicap uses index × slope ÷ 113 plus rating minus par. Playing handicap is ${S.settings.allowance}% of that plus any league adjustment.`));
   const tb = h("table",{class:"grid"}, h("tr",null, h("th",null,"Player"), h("th",null,"Index"), h("th",null,"Course"), h("th",null,"Adjust"), h("th",null,"Plays off")));
   for (const pid of d.players){
@@ -650,7 +865,7 @@ function viewRoundEditor(){
   out.push(h("div",{class:"panel scroll"}, tb));
   out.push(h("div",{class:"navrow"},
     h("button",{class:"btn ghost", onclick:()=>{S.editRound=null; render();}},"Cancel"),
-    h("button",{class:"btn", onclick:saveRound},"Save round")));
+    h("button",{class:"btn", onclick:saveRound},"Save event")));
   return out;
 }
 async function saveRound(){
@@ -664,7 +879,7 @@ async function saveRound(){
     hcp[pid] = {index:+row.index, adj:+row.adj||0, ch:v.ch, ph:v.ph};
   }
   const clean = {id:d.id, date:d.date, courseId:d.courseId, teeId:d.teeId, type:d.type, players:d.players, hcp, season:d.season||S.settings.season};
-  if (await guarded(()=>S.db.doc("admin/cfg/rounds/"+d.id).set(clean), "Round saved. Everyone can see it now")){ S.editRound=null; S.tab="rounds"; render(); }
+  if (await guarded(()=>S.db.doc("admin/cfg/rounds/"+d.id).set(clean), "Event saved. Everyone can see it now")){ S.editRound=null; S.tab="rounds"; render(); }
 }
 
 /* ---------- PIN, sign in, shell ---------- */
@@ -710,7 +925,7 @@ function viewNotAdmin(){
 function render(){
   const app = document.getElementById("app");
   const header = h("header",{class:"top"}, h("div",{class:"inner"},
-    h("h1",null,"The League"), h("div",{class:"season"}, S.settings?.season || "")));
+    h("h1",{class:"brand", style:"margin:0"}, logo(), "TINPOT TOUR"), S.settings?.season ? h("div",{class:"season"}, S.settings.season) : null));
   const main = h("main",{class:"wrap"});
   const bare = (...kids)=>{ main.append(...kids); app.replaceChildren(header, main); };
   if (S.phase==="config") return bare(h("div",{class:"panel", style:"margin-top:24px"}, h("h2",{style:"margin-top:0"},"Almost there"), h("p",null,"Paste your Firebase config into FIREBASE_CONFIG at the top of index.html.")));
@@ -718,18 +933,22 @@ function render(){
   if (S.phase==="notadmin") return bare(...viewNotAdmin());
   if (!S.ready) return bare(h("p",{class:"muted", style:"margin-top:24px"},"Loading the league…"));
 
+  const closed = !!seasonFinal();
+  if (S.tab==="champion" && !closed) S.tab="table";
   if (!S.settings && !S.isOwner){
     main.append(h("div",{class:"panel empty", style:"margin-top:24px"},"The league hasn't been set up yet."));
   } else if (!S.settings && S.isOwner && S.tab!=="setup"){
     main.append(h("div",{class:"panel", style:"margin-top:24px"}, h("h2",{style:"margin-top:0"},"Set up your league"),
-      h("p",null,"Set a league PIN, add your players and handicaps, then a course, then your first round."),
+      h("p",null,"Set a league PIN, add your players and handicaps, then a course, then your first event."),
       h("button",{class:"btn", onclick:()=>{S.tab="setup"; render();}},"Start setup")));
   } else {
-    const v = {table:viewTable, rounds:viewRounds, card:viewCard, setup:viewSetup}[S.tab]();
+    const v = {table:viewTable, champion:viewChampion, rounds:viewRounds, card:viewCard, setup:viewSetup}[S.tab]();
     main.append(...v);
     if (S.tab==="setup" && !S.editCourse && !S.editRound) main.append(...pinSection());
   }
-  const tabs = [["table","Table"],["rounds","Rounds"],["card","Scorecard"]];
+  const tabs = [["table","Standings"]];
+  if (closed) tabs.push(["champion","Champion"]);
+  tabs.push(["rounds","Schedule"],["card","Scorecard"]);
   if (S.isOwner) tabs.push(["setup","Setup"]);
   const nav = h("nav",{class:"tabs", "aria-label":"Sections"}, h("div",{class:"inner"},
     tabs.map(([k,l])=>h("button",{"aria-current":S.tab===k?"page":null, onclick:()=>{

@@ -519,8 +519,11 @@ async function photoFromFile(file){
     const img = await new Promise((ok,fail)=>{ const i=new Image(); i.onload=()=>ok(i); i.onerror=fail; i.src=url; });
     const w = img.naturalWidth, ht = img.naturalHeight, side = Math.min(w,ht), out = 384;
     const c = document.createElement("canvas"); c.width = c.height = out;
+    const g = c.getContext("2d");
+    // JPEG has no transparency, so a cut-out photo would come out on black. Paint white underneath first
+    g.fillStyle = "#FFFFFF"; g.fillRect(0, 0, out, out);
     // Square crop, nudged up because faces sit in the top half of most photos
-    c.getContext("2d").drawImage(img, (w-side)/2, (ht-side)/3, side, side, 0, 0, out, out);
+    g.drawImage(img, (w-side)/2, (ht-side)/3, side, side, 0, 0, out, out);
     return c.toDataURL("image/jpeg", 0.8);
   } finally { URL.revokeObjectURL(url); }
 }

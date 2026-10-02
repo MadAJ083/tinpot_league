@@ -13,7 +13,7 @@
 :root{
   --bg:#EEF1F6; --panel:#FFFFFF; --ink:#0E1726; --muted:#56627A; --rule:#D5DBE5; --steel:#E2E7EF;
   --navy:#0A1F44; --navy-ink:#0A1F44; --on-navy:#FFFFFF; --sub-navy:#B9C6DD; --navy-line:#2C4A82;
-  --red:#D0202E; --red-ink:#D0202E; --red-soft:#FBE4E6; --av-bg:#C9D3E3; --av-fg:#8394B3; --pts-bg:#0A1F44;
+  --red:#D0202E; --red-ink:#D0202E; --red-soft:#FBE4E6; --av-bg:#C9D3E3; --av-fg:#8394B3; --pts-bg:#0A1F44; --green:#12823B;
   --narrow:"Archivo Narrow","Arial Narrow",Arial,sans-serif;
   --body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
   box-sizing:border-box;
@@ -25,13 +25,13 @@
   :root:not([data-theme="light"]){
     --bg:#0A1120; --panel:#121B2D; --ink:#E7ECF4; --muted:#9AA6BC; --rule:#24304A; --steel:#1A2540;
     --navy:#0A1F44; --navy-ink:#C9D6EE; --on-navy:#FFFFFF; --sub-navy:#B9C6DD; --navy-line:#2C4A82;
-    --red:#D0202E; --red-ink:#FF7A84; --red-soft:#3A1A20; --av-bg:#2A3956; --av-fg:#6F82A6; --pts-bg:#24457F;
+    --red:#D0202E; --red-ink:#FF7A84; --red-soft:#3A1A20; --av-bg:#2A3956; --av-fg:#6F82A6; --pts-bg:#24457F; --green:#4ADE80;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0A1120; --panel:#121B2D; --ink:#E7ECF4; --muted:#9AA6BC; --rule:#24304A; --steel:#1A2540;
   --navy:#0A1F44; --navy-ink:#C9D6EE; --on-navy:#FFFFFF; --sub-navy:#B9C6DD; --navy-line:#2C4A82;
-  --red:#D0202E; --red-ink:#FF7A84; --red-soft:#3A1A20; --av-bg:#2A3956; --av-fg:#6F82A6; --pts-bg:#24457F;
+  --red:#D0202E; --red-ink:#FF7A84; --red-soft:#3A1A20; --av-bg:#2A3956; --av-fg:#6F82A6; --pts-bg:#24457F; --green:#4ADE80;
 }
 :root[data-theme="light"]{color-scheme:light}
 :root[data-theme="dark"]{color-scheme:dark}
@@ -108,7 +108,12 @@ p{margin:0 0 10px}
 .board-head{background:var(--steel);padding:7px 0;font-family:var(--narrow);font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--navy-ink)}
 .board-head span:not(:nth-child(2)){text-align:center}
 .board-row{color:inherit;font:inherit;cursor:pointer;min-height:58px;border:0;border-top:1px solid var(--rule);background:none;width:100%;text-align:left;padding:0}
-.pos{font-family:var(--narrow);font-weight:700;font-size:22px;text-align:center;color:var(--navy-ink)}
+.pos{font-family:var(--narrow);font-weight:700;font-size:22px;line-height:1;text-align:center;color:var(--navy-ink);display:flex;flex-direction:column;align-items:center}
+/* Movement since the last event */
+.mv{display:flex;align-items:center;gap:2px;margin-top:4px;font-size:14px;font-weight:700}
+.mv.up{color:var(--green)}
+.mv.down{color:var(--red-ink)}
+.mv.same{color:var(--ink)}
 .board-row.first .pos{color:var(--red-ink)}
 .board-row .ev{text-align:center;font-family:var(--narrow);font-weight:600;font-size:17px;color:var(--muted)}
 .board-row .pts{align-self:stretch;display:flex;align-items:center;justify-content:center;font-family:var(--narrow);font-weight:700;font-size:26px;background:var(--pts-bg);color:#fff}
@@ -353,9 +358,10 @@ function roundResults(r){
   return rows;
 }
 const seasonRounds = () => Object.values(S.rounds).filter(r=>r.season===S.settings?.season);
-function leaderboard(){
+// excludeId leaves one round out, which gives the table as it stood before that round
+function leaderboard(excludeId){
   const players = S.settings?.players||[]; const bestOf = +S.settings?.bestOf || 0;
-  const done = seasonRounds().filter(r=>roundStatus(r)==="complete").sort((a,b)=>a.date<b.date?-1:1);
+  const done = seasonRounds().filter(r=>roundStatus(r)==="complete" && r.id!==excludeId).sort((a,b)=>a.date<b.date?-1:1);
   const byP = {}; players.forEach(p=>byP[p.id]={pid:p.id, entries:[], total:0, wins:0, best:null});
   for (const r of done){
     for (const row of roundResults(r)){
@@ -498,6 +504,14 @@ function avatar(size=38, cls="av"){
 function who(pid, size=38){
   return h("span",{class:"who"}, avatar(size), flag(playerById(pid)?.country), h("strong",null,pname(pid)));
 }
+function moveMark(d){
+  if (d==null) return null;
+  const tri = path => s("svg",{width:11, height:9, viewBox:"0 0 10 8", fill:"currentColor", "aria-hidden":"true"}, s("path",{d:path}));
+  if (d>0) return h("span",{class:"mv up", "aria-hidden":"true"}, tri("M5 0l5 8H0z"), d);
+  if (d<0) return h("span",{class:"mv down", "aria-hidden":"true"}, tri("M0 0h10L5 8z"), -d);
+  return h("span",{class:"mv same", "aria-hidden":"true"}, "–");
+}
+const moveText = d => d==null ? "" : d>0 ? `, up ${d} since the last event` : d<0 ? `, down ${-d} since the last event` : ", no change since the last event";
 const stat = (n,label,hl) => h("div",null, h("span",{class:"num"+(hl?" hl":"")}, n), h("span",null,label));
 
 /* ---------- views ---------- */
@@ -515,6 +529,24 @@ function viewTable(){
 
   // Once the season is closed the tiebreaks have settled every position
   const lb = withPositions(leaderboard(), closed);
+  // Movement against the table before the latest completed event (before the first, everyone was level).
+  // You go up one for each player you were level with or behind who is now behind you, and down one for
+  // each player who was behind you and is now ahead. So breaking away from a tie moves you up without
+  // moving the players you left behind down.
+  const played = seasonRounds().filter(r=>roundStatus(r)==="complete").sort((a,b)=>a.date<b.date?-1:1);
+  const latest = played[played.length-1];
+  const before = latest ? Object.fromEntries(withPositions(leaderboard(latest.id), closed).map(b=>[b.pid,b.pos])) : null;
+  const now = Object.fromEntries(lb.map(b=>[b.pid,b.pos]));
+  const moved = b => {
+    if (!before || !b.entries.length || before[b.pid]==null) return null;
+    let d = 0;
+    for (const o of lb){
+      if (o.pid===b.pid || before[o.pid]==null) continue;
+      if (before[o.pid] <= before[b.pid] && now[o.pid] > now[b.pid]) d++;
+      if (before[o.pid] > before[b.pid] && now[o.pid] < now[b.pid]) d--;
+    }
+    return d;
+  };
   if (!lb.length) return [...out, h("div",{class:"panel empty muted"},"No players yet.")];
 
   const top = lb[0];
@@ -550,9 +582,9 @@ function viewTable(){
     const counted = b.entries.filter(e=>e.counted).length;
     const open = S.openPlayer===b.pid;
     board.append(h("button",{class:"board-row"+(b.pos===1&&b.total>0?" first":""), "aria-expanded":String(open),
-      "aria-label":`${pname(b.pid)}, ${b.entries.length ? `${b.entries.length} played, ${counted} counting, ${b.wins} win${b.wins===1?"":"s"}, best ${b.best} pts` : "yet to play"}, ${fmtPts(b.total)} points`,
+      "aria-label":`${pname(b.pid)}, ${b.entries.length ? `${b.entries.length} played, ${counted} counting, ${b.wins} win${b.wins===1?"":"s"}, best ${b.best} pts` : "yet to play"}, ${fmtPts(b.total)} points${moveText(moved(b))}`,
       onclick:()=>{S.openPlayer=open?null:b.pid; render();}},
-      h("div",{class:"pos"}, b.total>0||b.entries.length? b.pos : "–"),
+      h("div",{class:"pos"}, h("span",null, b.total>0||b.entries.length? b.pos : "–"), moveMark(moved(b))),
       who(b.pid),
       h("div",{class:"ev"}, b.entries.length),
       h("div",{class:"pts"}, fmtPts(b.total))));
@@ -569,7 +601,7 @@ function viewTable(){
   const bo = +S.settings.bestOf;
   out.push(h("p",{class:"small muted", style:"margin-top:12px"},
     `Every event pays 5, 3 and 1. Away Day Majors and the Tour Championship count double. Ties share the points. `,
-    bo>0 ? `Your best ${bo} events count.` : `Every event counts.`, " Tap a name for their events."));
+    bo>0 ? `Your best ${bo} events count.` : `Every event counts.`, before ? " Arrows show movement since the last event." : "", " Tap a name for their events."));
   return out;
 }
 const ordinal = n => n + (["th","st","nd","rd"][(n%100>10&&n%100<14)?0:n%10] || "th");

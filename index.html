@@ -6,6 +6,8 @@
 <title>Tinpot Tour</title>
 <meta name="theme-color" content="#0A1F44">
 <script>/* Apply a saved Light/Dark choice before first paint so the page doesn't flash */try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800;1,900&family=Archivo+Narrow:wght@500;600;700&display=swap" rel="stylesheet">
@@ -47,10 +49,16 @@ button{cursor:pointer}
 header.top{background:var(--navy);color:var(--on-navy);padding:14px 16px;border-bottom:4px solid var(--red)}
 header.top .inner{max-width:640px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{display:flex;align-items:center;gap:9px;font-weight:900;font-style:italic;font-size:21px;letter-spacing:.02em}
+.logo{display:block;flex-shrink:0;object-fit:contain}
+header.top .logo{margin:-6px 0}
 header.top .season{font-family:var(--narrow);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border:1px solid #5872A3;border-radius:4px;padding:3px 8px;white-space:nowrap}
 .hdr-right{display:flex;align-items:center;gap:8px}
 .theme-btn{width:44px;height:44px;flex-shrink:0;border:1px solid #5872A3;border-radius:6px;background:none;color:#fff;display:inline-flex;align-items:center;justify-content:center}
-@media (max-width:380px){ .brand{font-size:18px} header.top .season{letter-spacing:.04em} }
+.brand{white-space:nowrap}
+.season-sub{display:none}
+/* Phones: logo, name and display button only. The season name moves under the Standings title */
+@media (max-width:440px){ header.top .season{display:none} .season-sub{display:inline} }
+@media (max-width:340px){ .brand{font-size:18px} }
 
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--rule);padding-bottom:env(safe-area-inset-bottom,0px);z-index:10}
 nav.tabs .inner{max-width:640px;margin:0 auto;display:flex}
@@ -458,10 +466,8 @@ async function setLeaguePin(pin){
 }
 
 /* ---------- theme pieces ---------- */
-const logo = (w=24) => s("svg",{width:w, height:Math.round(w*30/26), viewBox:"0 0 26 30", fill:"none", "aria-hidden":"true"},
-  s("path",{d:"M13 1.5 24 5v10.5c0 6.5-4.6 11-11 13-6.4-2-11-6.5-11-13V5z", stroke:"currentColor", "stroke-width":2}),
-  s("path",{d:"M10 22V8", stroke:"currentColor", "stroke-width":2, "stroke-linecap":"round"}),
-  s("path",{d:"M10 8.5h7l-2 2.75 2 2.75h-7", fill:"#D0202E", stroke:"#D0202E", "stroke-width":1.5, "stroke-linejoin":"round"}));
+// The league logo (logo.png, 128×192, transparent round the edge so it sits on the navy header)
+const logo = (hgt=52, alt="") => h("img",{src:"logo.png", alt, height:hgt, width:Math.round(hgt*128/192), class:"logo"});
 const trophy = (w=18) => s("svg",{width:w, height:w, viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", "stroke-width":2, "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true"},
   s("path",{d:"M7 4h10v5a5 5 0 0 1-10 0z"}), s("path",{d:"M7 6H4v1a3 3 0 0 0 3 3"}), s("path",{d:"M17 6h3v1a3 3 0 0 1-3 3"}), s("path",{d:"M12 14v4"}), s("path",{d:"M8 21h8"}));
 // Display switch: Auto follows the phone, Light and Dark override it on this phone only
@@ -555,7 +561,8 @@ function roundLabel(r){
 function typeBadge(r){ return r.type==="standard" ? null : h("span",{class:"badge "+r.type}, TYPES[r.type].label+" ×2"); }
 
 function viewTable(){
-  const out = [h("div",{class:"pagehead"}, h("h2",null,"Tinpot Cup Standings"), h("div",{class:"sub"},"Race to the Tour Championship"))];
+  const out = [h("div",{class:"pagehead"}, h("h2",null,"Tinpot Cup Standings"),
+    h("div",{class:"sub"}, S.settings?.season ? h("span",{class:"season-sub"}, S.settings.season+" · ") : null, "Race to the Tour Championship"))];
   const closed = !!seasonFinal();
   if (closed) out.push(h("button",{class:"champ-banner", onclick:()=>{S.tab="champion"; render(); window.scrollTo(0,0);}},
     trophy(24), h("span",null, h("strong",null,"Season complete"), h("span",null,"Meet the Tinpot Tour Champion")), chevron()));
@@ -1001,6 +1008,7 @@ function viewPin(){
     catch(e){ S.pinBusy=false; render(); toast(e?.code==="permission-denied" ? "That PIN isn't right" : "Couldn't check the PIN. Check your signal"); }
   };
   return [h("div",{class:"panel", style:"margin-top:24px"},
+    h("div",{style:"display:flex;justify-content:center;margin-bottom:8px"}, logo(190, "The Tinpot League")),
     h("h2",{style:"margin-top:0"},"Enter the league PIN"),
     h("p",{class:"muted"},"You only need to do this once on this phone."),
     h("input",{type:"text", autocomplete:"off", autocapitalize:"off", "aria-label":"League PIN", placeholder:"PIN",

@@ -104,12 +104,12 @@ p{margin:0 0 10px}
 
 /* Standings table */
 .board{background:var(--panel);border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-top:12px}
-.board-head,.board-row{display:grid;grid-template-columns:58px minmax(0,1fr) 54px 58px;align-items:center}
+.board-head,.board-row{display:grid;grid-template-columns:50px minmax(0,1fr) 54px 58px;align-items:center}
 .board-head{background:var(--steel);padding:7px 0;font-family:var(--narrow);font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--navy-ink)}
 .board-head span:not(:nth-child(2)){text-align:center}
 .board-row{color:inherit;font:inherit;cursor:pointer;min-height:58px;border:0;border-top:1px solid var(--rule);background:none;width:100%;text-align:left;padding:0}
 .pos{font-family:var(--narrow);font-weight:700;font-size:22px;line-height:1;text-align:center;color:var(--navy-ink)}
-.board-row .pos{display:grid;grid-template-columns:26px auto;column-gap:4px;align-items:center;justify-content:start;padding-left:4px}
+.board-row .pos{display:grid;grid-template-columns:16px auto;column-gap:6px;align-items:center;justify-content:start;padding-left:4px}
 .board-row .pos .n{grid-column:2}
 /* Movement since the last event */
 .mv{display:flex;align-items:center;justify-content:flex-end;gap:2px;font-size:14px;font-weight:700}
@@ -121,7 +121,7 @@ p{margin:0 0 10px}
 .board-row .pts{align-self:stretch;display:flex;align-items:center;justify-content:center;font-family:var(--narrow);font-weight:700;font-size:26px;background:var(--pts-bg);color:#fff}
 .board-row.first .pts{background:var(--red)}
 .stats .num.hl{color:var(--red-ink)}
-.board-detail{padding:4px 14px 14px 58px;border-top:1px solid var(--rule);font-size:14px}
+.board-detail{padding:4px 14px 14px 50px;border-top:1px solid var(--rule);font-size:14px}
 .board-detail table{width:100%;border-collapse:collapse}
 .board-detail td{padding:4px 0;border-bottom:1px dashed var(--rule)}
 .board-detail td:last-child{text-align:right;font-family:var(--narrow);font-size:17px;font-weight:700}
@@ -508,12 +508,12 @@ function who(pid, size=38){
 }
 function moveMark(d){
   if (d==null) return null;
-  const tri = path => s("svg",{width:11, height:9, viewBox:"0 0 10 8", fill:"currentColor", "aria-hidden":"true"}, s("path",{d:path}));
-  if (d>0) return h("span",{class:"mv up", "aria-hidden":"true"}, tri("M5 0l5 8H0z"), d);
-  if (d<0) return h("span",{class:"mv down", "aria-hidden":"true"}, tri("M0 0h10L5 8z"), -d);
+  const tri = path => s("svg",{width:13, height:10, viewBox:"0 0 10 8", fill:"currentColor", "aria-hidden":"true"}, s("path",{d:path}));
+  if (d>0) return h("span",{class:"mv up", "aria-hidden":"true"}, tri("M5 0l5 8H0z"));
+  if (d<0) return h("span",{class:"mv down", "aria-hidden":"true"}, tri("M0 0h10L5 8z"));
   return h("span",{class:"mv same", "aria-hidden":"true"}, "–");
 }
-const moveText = d => d==null ? "" : d>0 ? `, up ${d} since the last event` : d<0 ? `, down ${-d} since the last event` : ", no change since the last event";
+const moveText = d => d==null ? "" : d>0 ? ", moved up since the last event" : d<0 ? ", moved down since the last event" : ", no change since the last event";
 const stat = (n,label,hl) => h("div",null, h("span",{class:"num"+(hl?" hl":"")}, n), h("span",null,label));
 
 /* ---------- views ---------- */

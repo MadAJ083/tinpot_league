@@ -104,13 +104,15 @@ p{margin:0 0 10px}
 
 /* Standings table */
 .board{background:var(--panel);border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-top:12px}
-.board-head,.board-row{display:grid;grid-template-columns:44px minmax(0,1fr) 54px 58px;align-items:center}
+.board-head,.board-row{display:grid;grid-template-columns:58px minmax(0,1fr) 54px 58px;align-items:center}
 .board-head{background:var(--steel);padding:7px 0;font-family:var(--narrow);font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--navy-ink)}
 .board-head span:not(:nth-child(2)){text-align:center}
 .board-row{color:inherit;font:inherit;cursor:pointer;min-height:58px;border:0;border-top:1px solid var(--rule);background:none;width:100%;text-align:left;padding:0}
-.pos{font-family:var(--narrow);font-weight:700;font-size:22px;line-height:1;text-align:center;color:var(--navy-ink);display:flex;flex-direction:column;align-items:center}
+.pos{font-family:var(--narrow);font-weight:700;font-size:22px;line-height:1;text-align:center;color:var(--navy-ink)}
+.board-row .pos{display:grid;grid-template-columns:26px auto;column-gap:4px;align-items:center;justify-content:start;padding-left:4px}
+.board-row .pos .n{grid-column:2}
 /* Movement since the last event */
-.mv{display:flex;align-items:center;gap:2px;margin-top:4px;font-size:14px;font-weight:700}
+.mv{display:flex;align-items:center;justify-content:flex-end;gap:2px;font-size:14px;font-weight:700}
 .mv.up{color:var(--green)}
 .mv.down{color:var(--red-ink)}
 .mv.same{color:var(--ink)}
@@ -119,7 +121,7 @@ p{margin:0 0 10px}
 .board-row .pts{align-self:stretch;display:flex;align-items:center;justify-content:center;font-family:var(--narrow);font-weight:700;font-size:26px;background:var(--pts-bg);color:#fff}
 .board-row.first .pts{background:var(--red)}
 .stats .num.hl{color:var(--red-ink)}
-.board-detail{padding:4px 14px 14px 44px;border-top:1px solid var(--rule);font-size:14px}
+.board-detail{padding:4px 14px 14px 58px;border-top:1px solid var(--rule);font-size:14px}
 .board-detail table{width:100%;border-collapse:collapse}
 .board-detail td{padding:4px 0;border-bottom:1px dashed var(--rule)}
 .board-detail td:last-child{text-align:right;font-family:var(--narrow);font-size:17px;font-weight:700}
@@ -584,7 +586,7 @@ function viewTable(){
     board.append(h("button",{class:"board-row"+(b.pos===1&&b.total>0?" first":""), "aria-expanded":String(open),
       "aria-label":`${pname(b.pid)}, ${b.entries.length ? `${b.entries.length} played, ${counted} counting, ${b.wins} win${b.wins===1?"":"s"}, best ${b.best} pts` : "yet to play"}, ${fmtPts(b.total)} points${moveText(moved(b))}`,
       onclick:()=>{S.openPlayer=open?null:b.pid; render();}},
-      h("div",{class:"pos"}, h("span",null, b.total>0||b.entries.length? b.pos : "–"), moveMark(moved(b))),
+      h("div",{class:"pos"}, moveMark(moved(b)), h("span",{class:"n"}, b.total>0||b.entries.length? b.pos : "–")),
       who(b.pid),
       h("div",{class:"ev"}, b.entries.length),
       h("div",{class:"pts"}, fmtPts(b.total))));

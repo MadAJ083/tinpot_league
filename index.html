@@ -13,7 +13,7 @@
 :root{
   --bg:#EEF1F6; --panel:#FFFFFF; --ink:#0E1726; --muted:#56627A; --rule:#D5DBE5; --steel:#E2E7EF;
   --navy:#0A1F44; --navy-ink:#0A1F44; --on-navy:#FFFFFF; --sub-navy:#B9C6DD; --navy-line:#2C4A82;
-  --red:#D0202E; --red-ink:#D0202E; --red-soft:#FBE4E6; --av-bg:#C9D3E3; --av-fg:#8394B3;
+  --red:#D0202E; --red-ink:#D0202E; --red-soft:#FBE4E6; --av-bg:#C9D3E3; --av-fg:#8394B3; --pts-bg:#0A1F44;
   --narrow:"Archivo Narrow","Arial Narrow",Arial,sans-serif;
   --body:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;
   box-sizing:border-box;
@@ -25,13 +25,13 @@
   :root:not([data-theme="light"]){
     --bg:#0A1120; --panel:#121B2D; --ink:#E7ECF4; --muted:#9AA6BC; --rule:#24304A; --steel:#1A2540;
     --navy:#0A1F44; --navy-ink:#C9D6EE; --on-navy:#FFFFFF; --sub-navy:#B9C6DD; --navy-line:#2C4A82;
-    --red:#D0202E; --red-ink:#FF7A84; --red-soft:#3A1A20; --av-bg:#2A3956; --av-fg:#6F82A6;
+    --red:#D0202E; --red-ink:#FF7A84; --red-soft:#3A1A20; --av-bg:#2A3956; --av-fg:#6F82A6; --pts-bg:#24457F;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0A1120; --panel:#121B2D; --ink:#E7ECF4; --muted:#9AA6BC; --rule:#24304A; --steel:#1A2540;
   --navy:#0A1F44; --navy-ink:#C9D6EE; --on-navy:#FFFFFF; --sub-navy:#B9C6DD; --navy-line:#2C4A82;
-  --red:#D0202E; --red-ink:#FF7A84; --red-soft:#3A1A20; --av-bg:#2A3956; --av-fg:#6F82A6;
+  --red:#D0202E; --red-ink:#FF7A84; --red-soft:#3A1A20; --av-bg:#2A3956; --av-fg:#6F82A6; --pts-bg:#24457F;
 }
 :root[data-theme="light"]{color-scheme:light}
 :root[data-theme="dark"]{color-scheme:dark}
@@ -111,7 +111,9 @@ p{margin:0 0 10px}
 .pos{font-family:var(--narrow);font-weight:700;font-size:22px;text-align:center;color:var(--navy-ink)}
 .board-row.first .pos{color:var(--red-ink)}
 .board-row .ev{text-align:center;font-family:var(--narrow);font-weight:600;font-size:17px;color:var(--muted)}
-.board-row .pts{text-align:center;font-family:var(--narrow);font-weight:700;font-size:24px;color:var(--navy-ink)}
+.board-row .pts{align-self:stretch;display:flex;align-items:center;justify-content:center;font-family:var(--narrow);font-weight:700;font-size:26px;background:var(--pts-bg);color:#fff}
+.board-row.first .pts{background:var(--red)}
+.stats .num.hl{color:var(--red-ink)}
 .board-detail{padding:4px 14px 14px 44px;border-top:1px solid var(--rule);font-size:14px}
 .board-detail table{width:100%;border-collapse:collapse}
 .board-detail td{padding:4px 0;border-bottom:1px dashed var(--rule)}
@@ -496,7 +498,7 @@ function avatar(size=38, cls="av"){
 function who(pid, size=38){
   return h("span",{class:"who"}, avatar(size), flag(playerById(pid)?.country), h("strong",null,pname(pid)));
 }
-const stat = (n,label) => h("div",null, h("span",{class:"num"}, n), h("span",null,label));
+const stat = (n,label,hl) => h("div",null, h("span",{class:"num"+(hl?" hl":"")}, n), h("span",null,label));
 
 /* ---------- views ---------- */
 function roundLabel(r){
@@ -524,7 +526,7 @@ function viewTable(){
           h("div",{class:"eyebrow red"}, closed ? "Tinpot Tour Champion" : outright ? "Cup leader" : "Joint leader"),
           h("div",{class:"title-it name"}, pname(top.pid)),
           playerById(top.pid)?.country ? h("div",{class:"row small muted", style:"gap:6px;margin-top:4px"}, flag(playerById(top.pid).country), COUNTRIES[playerById(top.pid).country]) : null)),
-      h("div",{class:"stats"}, stat(fmtPts(top.total),"CUP PTS"), stat(top.entries.length,"EVENTS"), stat(top.wins,"WINS"))));
+      h("div",{class:"stats"}, stat(fmtPts(top.total),"CUP PTS",true), stat(top.entries.length,"EVENTS"), stat(top.wins,"WINS"))));
   }
 
   const up = seasonRounds().filter(r=>roundStatus(r)!=="complete").sort((a,b)=>a.date<b.date?-1:1);
@@ -609,7 +611,7 @@ function viewRounds(){
         h("div",{class:"info"},
           h("div",{class:"spread"},
             h("span",{class:"eyebrow", style:"color:var(--navy-ink)"}, TYPES[r.type].label+(TYPES[r.type].mult>1?" · ×2":"")),
-            st==="live"?h("span",{class:"badge live"},"Live"):st==="complete"?h("span",{class:"badge"},"Final"):null),
+            st==="live"?h("span",{class:"badge live"},"Live"):st==="complete"?h("span",{class:"badge"},"Complete"):null),
           h("div",{class:"small muted"}, roundLabel(r)))));
     const tail = h("div",{class:"tail"});
     if (st==="complete"){

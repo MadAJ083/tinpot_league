@@ -79,6 +79,10 @@ p{margin:0 0 10px}
 .who strong{font-weight:700;text-transform:uppercase;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .av{flex-shrink:0;border-radius:50%;background:var(--av-bg);color:var(--av-fg);overflow:hidden;display:inline-flex;align-items:flex-end;justify-content:center}
 .av.sq{border-radius:8px;border-bottom:3px solid var(--red)}
+.av-img{width:100%;height:100%;object-fit:cover;display:block}
+label.btn{display:inline-flex;align-items:center;cursor:pointer}
+label.btn:focus-within{outline:3px solid var(--red);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;padding:0;margin:-1px}
 .flag{flex-shrink:0;display:block}
 
 /* Cup leader */
@@ -268,7 +272,7 @@ const S = {
   tab:"table", openPlayer:null,
   cardRound:null, hole:1, fullCard:false,
   draftLeague:null, editCourse:null, editRound:null,
-  local:{}, phase:"loading", unsubs:[], fs:null, auth:null, uid:null, pinBusy:false,
+  local:{}, photos:{}, phase:"loading", unsubs:[], fs:null, auth:null, uid:null, pinBusy:false,
   theme:(()=>{ try { const t=localStorage.getItem("theme"); return t==="light"||t==="dark" ? t : "auto"; } catch(_) { return "auto"; } })()
 };
 
@@ -497,14 +501,38 @@ function flag(code, w=20){
   return s("svg",{class:"flag", width:w, height:Math.round(w*15/22), viewBox:"0 0 22 15", role:"img", "aria-label":name},
     ...parts, s("rect",{x:.5, y:.5, width:21, height:14, fill:"none", stroke:"rgba(0,0,0,.2)"}));
 }
-// Mugshots are placeholders for now. When photos arrive, this is the one place that changes
-function avatar(size=38, cls="av"){
+// Mugshots live in Firestore at photos/{playerId}, behind the same PIN rules as the scores.
+// No photo yet: a silhouette
+const PHOTO_PREFIX = "data:image/jpeg;base64,";
+function avatar(pid, size=38, cls="av"){
+  const img = S.photos[pid];
   return h("span",{class:cls, style:`width:${size}px;height:${Math.round(size*(cls.includes("sq")||cls.includes("tall")?1.12:1))}px`, "aria-hidden":"true"},
+    typeof img==="string" && img.startsWith(PHOTO_PREFIX) ? h("img",{class:"av-img", src:img, alt:""}) :
     s("svg",{width:Math.round(size*.86), height:Math.round(size*.86), viewBox:"0 0 24 24", fill:"currentColor"},
       s("circle",{cx:12, cy:9, r:5}), s("path",{d:"M2 24c0-6 4.5-9 10-9s10 3 10 9z"})));
 }
+// Shrink on the phone before upload: a 384px square JPEG is roughly 30 to 60 KB. Redrawing it also
+// drops the camera's metadata, GPS location included
+async function photoFromFile(file){
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok,fail)=>{ const i=new Image(); i.onload=()=>ok(i); i.onerror=fail; i.src=url; });
+    const w = img.naturalWidth, ht = img.naturalHeight, side = Math.min(w,ht), out = 384;
+    const c = document.createElement("canvas"); c.width = c.height = out;
+    // Square crop, nudged up because faces sit in the top half of most photos
+    c.getContext("2d").drawImage(img, (w-side)/2, (ht-side)/3, side, side, 0, 0, out, out);
+    return c.toDataURL("image/jpeg", 0.8);
+  } finally { URL.revokeObjectURL(url); }
+}
+async function setPhoto(pid, file){
+  if (!file) return;
+  let img;
+  try { img = await photoFromFile(file); } catch(_) { return toast("Couldn't read that picture. Try a different one"); }
+  if (!img.startsWith(PHOTO_PREFIX) || img.length > 190000) return toast("That picture couldn't be shrunk enough. Try a different one");
+  await guarded(()=>S.db.doc("photos/"+pid).set({img, at:serverTimestamp()}), "Photo saved");
+}
 function who(pid, size=38){
-  return h("span",{class:"who"}, avatar(size), flag(playerById(pid)?.country), h("strong",null,pname(pid)));
+  return h("span",{class:"who"}, avatar(pid, size), flag(playerById(pid)?.country), h("strong",null,pname(pid)));
 }
 function moveMark(d){
   if (d==null) return null;
@@ -555,7 +583,7 @@ function viewTable(){
   if (top.entries.length){
     const outright = !lb[1] || lb[1].total < top.total;
     out.push(h("section",{class:"leader"},
-      h("div",{class:"top"}, avatar(72,"av sq"),
+      h("div",{class:"top"}, avatar(top.pid, 72, "av sq"),
         h("div",{style:"min-width:0"},
           h("div",{class:"eyebrow red"}, closed ? "Tinpot Tour Champion" : outright ? "Cup leader" : "Joint leader"),
           h("div",{class:"title-it name"}, pname(top.pid)),
@@ -707,7 +735,7 @@ function viewCard(){
     const pts = holePoints(val, c.par[i], sh);
     const set = v => setStroke(r.id,pid,S.hole,v);
     players.append(h("div",{class:"panel player"},
-      h("div",{class:"who"}, avatar(40),
+      h("div",{class:"who"}, avatar(pid, 40),
         h("div",{style:"min-width:0"},
           h("div",{class:"who"}, flag(playerById(pid)?.country,18), h("strong",null,pname(pid))),
           h("div",{class:"dots"}, sh>0 ? "●".repeat(sh)+(sh===1?" 1 shot":" "+sh+" shots") : sh<0 ? "gives "+(-sh) : h("span",{class:"muted"},"no shot")))),
@@ -758,7 +786,7 @@ function viewChampion(){
   const onTheDay = roundResults(fin).find(x=>x.pid===c.pid);
   const yr = (S.settings?.season||"").match(/\d{4}/)?.[0] || "";
   return [h("section",{class:"champ"},
-    h("div",{class:"champ-hero"}, yr ? h("span",{class:"champ-year", "aria-hidden":"true"}, yr) : null, avatar(190,"av tall")),
+    h("div",{class:"champ-hero"}, yr ? h("span",{class:"champ-year", "aria-hidden":"true"}, yr) : null, avatar(c.pid, 190, "av tall")),
     h("div",{class:"champ-band"},
       h("div",{class:"eyebrow"}, trophy(), (yr?yr+" ":"")+"Tinpot Tour Champion"),
       h("h2",null, pname(c.pid)),
@@ -795,7 +823,7 @@ function viewSetup(){
   if (!d.players.length) pl.append(h("p",{class:"muted"},"Add the three of you. Use + for a plus handicap, like +1.2."));
   d.players.forEach((p,idx)=>{
     pl.append(h("div",{class:"pcard"},
-      h("div",{class:"row", style:"margin-bottom:8px"}, avatar(44),
+      h("div",{class:"row", style:"margin-bottom:8px"}, avatar(p.id, 44),
         h("input",{type:"text", "aria-label":"Name", placeholder:"Name", value:p.name, oninput:e=>p.name=e.target.value}),
         h("button",{class:"btn danger", "aria-label":"Remove "+(p.name||"player"), onclick:()=>{ if(confirm("Remove "+(p.name||"this player")+"? Their past rounds stay in the history.")){ d.players.splice(idx,1); render(); } }},"✕")),
       h("div",{class:"row"},
@@ -803,9 +831,13 @@ function viewSetup(){
         flag(p.country,26),
         h("select",{"aria-label":"Country for "+(p.name||"player"), style:"flex:1", onchange:e=>{ p.country=e.target.value||null; render(); }},
           h("option",{value:""},"No flag"),
-          Object.entries(COUNTRIES).map(([k,v])=>h("option",{value:k, selected:p.country===k}, v))))));
+          Object.entries(COUNTRIES).map(([k,v])=>h("option",{value:k, selected:p.country===k}, v)))),
+      h("div",{class:"row", style:"margin-top:8px"},
+        h("label",{class:"btn ghost"}, S.photos[p.id] ? "Change photo" : "Add photo",
+          h("input",{type:"file", accept:"image/*", class:"vh", "aria-label":"Photo for "+(p.name||"player"), onchange:e=>setPhoto(p.id, e.target.files[0])})),
+        S.photos[p.id] ? h("button",{class:"btn danger", onclick:()=>{ if(confirm("Remove "+(p.name||"this player")+"'s photo?")) guarded(()=>S.db.doc("photos/"+p.id).delete(), "Photo removed"); }},"Remove photo") : null)));
   });
-  pl.append(h("p",{class:"small muted"},"Mugshots are placeholders for now."));
+  pl.append(h("p",{class:"small muted"},"Photos are shrunk on your phone before they're saved, and only league members can see them. Head and shoulders works best."));
   pl.append(h("button",{class:"btn ghost", onclick:()=>{ d.players.push({id:uid("p_"), name:"", index:NaN}); render(); }},"Add player"));
   out.push(pl);
   out.push(h("button",{class:"btn big", style:"margin-top:14px", onclick:async()=>{
@@ -1052,6 +1084,9 @@ function subscribe(){
     }
     mark(); snapRender();
   }, onErr));
+  // Photos are extras: they don't hold up loading, and a refusal (say the rules aren't published yet)
+  // just leaves silhouettes rather than sending anyone back to the PIN screen
+  S.unsubs.push(onSnapshot(collection(fs,"photos"), q=>{ const o={}; q.docs.forEach(d=>o[d.id]=d.data().img); S.photos=o; snapRender(); }, ()=>{ S.photos={}; }));
 }
 
 function boot(){

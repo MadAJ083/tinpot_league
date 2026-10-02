@@ -49,7 +49,8 @@ button{cursor:pointer}
 header.top{background:var(--navy);color:var(--on-navy);padding:14px 16px;border-bottom:4px solid var(--red)}
 header.top .inner{max-width:640px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{display:flex;align-items:center;gap:9px;font-weight:900;font-style:italic;font-size:21px;letter-spacing:.02em}
-.logo{display:block;flex-shrink:0;object-fit:contain}
+.logo{display:block;flex-shrink:0;position:relative;overflow:hidden}
+.logo img{position:absolute;max-width:none}
 header.top .logo{margin:-6px 0}
 header.top .season{font-family:var(--narrow);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border:1px solid #5872A3;border-radius:4px;padding:3px 8px;white-space:nowrap}
 .hdr-right{display:flex;align-items:center;gap:8px}
@@ -466,8 +467,14 @@ async function setLeaguePin(pin){
 }
 
 /* ---------- theme pieces ---------- */
-// The league logo (logo.png, 128×192, transparent round the edge so it sits on the navy header)
-const logo = (hgt=52, alt="") => h("img",{src:"logo.png", alt, height:hgt, width:Math.round(hgt*128/192), class:"logo"});
+// The league logo is the original logo.webp, untouched so nothing is lost. The artwork sits at
+// x 58, y 96 (908×1354) inside the 1024×1536 file, with see-through margin round it, so the box shows just that part
+const LOGO = {w:1024, h:1536, x:58, y:96, cw:908, ch:1354};
+const logo = (hgt=52, alt="") => {
+  const k = hgt/LOGO.ch, px = n => (n*k).toFixed(2)+"px";
+  return h("span",{class:"logo", style:`width:${px(LOGO.cw)};height:${hgt}px`},
+    h("img",{src:"logo.webp", alt, style:`width:${px(LOGO.w)};height:${px(LOGO.h)};left:${px(-LOGO.x)};top:${px(-LOGO.y)}`}));
+};
 const trophy = (w=18) => s("svg",{width:w, height:w, viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", "stroke-width":2, "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true"},
   s("path",{d:"M7 4h10v5a5 5 0 0 1-10 0z"}), s("path",{d:"M7 6H4v1a3 3 0 0 0 3 3"}), s("path",{d:"M17 6h3v1a3 3 0 0 1-3 3"}), s("path",{d:"M12 14v4"}), s("path",{d:"M8 21h8"}));
 // Display switch: Auto follows the phone, Light and Dark override it on this phone only
@@ -1008,7 +1015,7 @@ function viewPin(){
     catch(e){ S.pinBusy=false; render(); toast(e?.code==="permission-denied" ? "That PIN isn't right" : "Couldn't check the PIN. Check your signal"); }
   };
   return [h("div",{class:"panel", style:"margin-top:24px"},
-    h("div",{style:"display:flex;justify-content:center;margin-bottom:8px"}, logo(190, "The Tinpot League")),
+    h("div",{style:"display:flex;justify-content:center;margin-bottom:8px"}, logo(190, "The Tinpot Tour")),
     h("h2",{style:"margin-top:0"},"Enter the league PIN"),
     h("p",{class:"muted"},"You only need to do this once on this phone."),
     h("input",{type:"text", autocomplete:"off", autocapitalize:"off", "aria-label":"League PIN", placeholder:"PIN",

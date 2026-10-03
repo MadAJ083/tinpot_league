@@ -274,7 +274,7 @@ import { getAuth, onAuthStateChanged, signInAnonymously, signInWithPopup, signIn
 // The Tour Championship pays no Cup points: it's winner takes all, with head starts (see finalResults)
 const TYPES = { standard:{label:"Tour Event", mult:1}, major:{label:"Away Day Major", mult:2}, final:{label:"Tour Championship", mult:1} };
 const POINTS3 = [5,3,1];
-const COUNTRIES = { ENG:"England", SCO:"Scotland", WAL:"Wales", IRL:"Ireland", GBR:"Great Britain" };
+const COUNTRIES = { ENG:"England", SCO:"Scotland", WAL:"Wales", IRL:"Ireland", GBR:"Great Britain", IND:"India" };
 
 /* ---------- state ---------- */
 const S = {
@@ -535,6 +535,12 @@ function flag(code, w=20){
     // St David's cross: the dragon doesn't survive at 20px
     WAL: [R(0,0,22,15,"#000000"), R(9,0,4,15,"#FFD100"), R(0,5.5,22,4,"#FFD100")],
     IRL: [R(0,0,7.34,15,"#169B62"), R(7.33,0,7.34,15,"#FFFFFF"), R(14.66,0,7.34,15,"#FF883E")],
+    // Saffron, white and green with the navy Ashoka Chakra: a wheel of 24 spokes
+    IND: [R(0,0,22,5,"#FF9933"), R(0,5,22,5,"#FFFFFF"), R(0,10,22,5,"#138808"),
+          s("circle",{cx:11, cy:7.5, r:2.1, fill:"none", stroke:"#000080", "stroke-width":0.45}),
+          s("path",{d:Array.from({length:12},(_,k)=>{ const a=k*Math.PI/12, x=2*Math.cos(a), y=2*Math.sin(a);
+            return `M${(11+x).toFixed(2)} ${(7.5+y).toFixed(2)}L${(11-x).toFixed(2)} ${(7.5-y).toFixed(2)}`; }).join(""), stroke:"#000080", "stroke-width":0.18}),
+          s("circle",{cx:11, cy:7.5, r:0.45, fill:"#000080"})],
     GBR: [R(0,0,22,15,"#012169"), s("path",{d:"M0 0L22 15M22 0L0 15", stroke:"#FFFFFF", "stroke-width":3}), s("path",{d:"M0 0L22 15M22 0L0 15", stroke:"#C8102E", "stroke-width":1}),
           R(8.5,0,5,15,"#FFFFFF"), R(0,5,22,5,"#FFFFFF"), R(9.5,0,3,15,"#C8102E"), R(0,6,22,3,"#C8102E")]
   }[code];

@@ -204,6 +204,8 @@ table.grid td.tot{font-family:var(--narrow);font-weight:700;font-size:16px}
 .stepper button{width:46px;height:46px;border-radius:6px;border:1px solid var(--rule);background:var(--bg);font-size:24px;font-weight:700;line-height:1;color:var(--navy-ink)}
 .stepper .val{min-width:44px;text-align:center;font-family:var(--narrow);font-weight:700;font-size:34px;color:var(--navy-ink)}
 .player .foot{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+.final-total{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:var(--navy);color:#fff;font-size:13px}
+.final-total strong{font-family:var(--narrow);font-size:20px}
 .hp{font-family:var(--narrow);font-weight:700;font-size:16px;color:var(--navy-ink);background:var(--steel);border-radius:4px;padding:1px 7px}
 .hp.good{background:var(--red);color:#fff}
 .hp.zero{background:var(--red-soft);color:var(--red-ink)}
@@ -269,7 +271,8 @@ import { getAuth, onAuthStateChanged, signInAnonymously, signInWithPopup, signIn
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 /* ---------- constants ---------- */
 // The keys are stored on rounds, so only the labels change with the theme
-const TYPES = { standard:{label:"Tour Event", mult:1}, major:{label:"Away Day Major", mult:2}, final:{label:"Tour Championship", mult:2} };
+// The Tour Championship pays no Cup points: it's winner takes all, with head starts (see finalResults)
+const TYPES = { standard:{label:"Tour Event", mult:1}, major:{label:"Away Day Major", mult:2}, final:{label:"Tour Championship", mult:1} };
 const POINTS3 = [5,3,1];
 const COUNTRIES = { ENG:"England", SCO:"Scotland", WAL:"Wales", IRL:"Ireland", GBR:"Great Britain" };
 
@@ -360,6 +363,7 @@ function roundStatus(r){
   return "scheduled";
 }
 function roundResults(r){
+  if (r.type==="final") return finalResults(r);
   const rows = r.players.map(pid=>({pid, score:stableford(r,pid)})).sort((a,b)=>b.score-a.score);
   const table = POINTS3;
   const mult = TYPES[r.type]?.mult || 1;
@@ -376,7 +380,7 @@ const seasonRounds = () => Object.values(S.rounds).filter(r=>r.season===S.settin
 // excludeId leaves one round out, which gives the table as it stood before that round
 function leaderboard(excludeId){
   const players = S.settings?.players||[]; const bestOf = +S.settings?.bestOf || 0;
-  const done = seasonRounds().filter(r=>roundStatus(r)==="complete" && r.id!==excludeId).sort((a,b)=>a.date<b.date?-1:1);
+  const done = seasonRounds().filter(r=>roundStatus(r)==="complete" && r.type!=="final" && r.id!==excludeId).sort((a,b)=>a.date<b.date?-1:1);
   const byP = {}; players.forEach(p=>byP[p.id]={pid:p.id, entries:[], total:0, wins:0, best:null});
   for (const r of done){
     for (const row of roundResults(r)){
@@ -402,6 +406,29 @@ function withPositions(lb, strict){
     const level = prev && prev.total===b.total && (!strict || (prev.wins===b.wins && prev.best===b.best));
     const pos = level ? prevPos : i+1; prev=b; prevPos=pos; return {...b, pos};
   });
+}
+// Tour Championship, FedEx Cup style: everyone starts with a head start in Stableford points, set by the
+// organiser when the round is set up (stored on the round as start{pid}). Highest Stableford plus head start
+// is the Tinpot Tour Champion. A tie on the day goes to the player who finished higher in the season
+const DEFAULT_START = [4,2,0];
+const seasonSeeds = () => Object.fromEntries(withPositions(leaderboard(), true).map(b=>[b.pid,b.pos]));
+function defaultStarts(players){
+  const seeds = seasonSeeds(), out = {};
+  for (const pid of players){
+    // Players level in the table share the head starts for the places they cover
+    const p = seeds[pid] ?? players.length, level = players.filter(o=>seeds[o]===p).length;
+    let sum = 0; for (let k=0;k<level;k++) sum += DEFAULT_START[p-1+k] ?? 0;
+    out[pid] = Math.round(sum/level*2)/2;
+  }
+  return out;
+}
+function finalResults(r){
+  const seeds = seasonSeeds(), start = r.start || defaultStarts(r.players);
+  const rows = r.players.map(pid=>{ const score = stableford(r,pid), s = +start[pid]||0;
+    return {pid, score, start:s, total:score+s, seed:seeds[pid] ?? 99, pts:0}; })
+    .sort((a,b)=>b.total-a.total || a.seed-b.seed);
+  rows.forEach((x,i)=>{ const p = rows[i-1]; x.pos = p && p.total===x.total && p.seed===x.seed ? p.pos : i+1; });
+  return rows;
 }
 // The season closes when its Tour Championship has been played and submitted
 const seasonFinal = () => seasonRounds().filter(r=>r.type==="final" && roundStatus(r)==="complete").sort((a,b)=>a.date<b.date?1:-1)[0];
@@ -565,12 +592,14 @@ function roundLabel(r){
   const c = S.courses[r.courseId]; const tee = c?.tees.find(t=>t.id===r.teeId);
   return (c?.name||"Unknown course") + (tee ? ", "+tee.name+" tees" : "");
 }
-function typeBadge(r){ return r.type==="standard" ? null : h("span",{class:"badge "+r.type}, TYPES[r.type].label+" ×2"); }
+function typeBadge(r){ return r.type==="standard" ? null : h("span",{class:"badge "+r.type}, TYPES[r.type].label+(TYPES[r.type].mult>1?" ×2":"")); }
+const typeLine = r => TYPES[r.type].label + (r.type==="final" ? " · Winner takes all" : TYPES[r.type].mult>1 ? " · ×2" : "");
+const fmtStart = n => "+"+fmtPts(+n||0);
 
 function viewTable(){
   const out = [h("div",{class:"pagehead"}, h("h2",null,"Tinpot Cup Standings"),
     h("div",{class:"sub"}, S.settings?.season ? h("span",{class:"season-sub"}, S.settings.season+" · ") : null, "Race to the Tour Championship"))];
-  const closed = !!seasonFinal();
+  const fin = seasonFinal(), closed = !!fin;
   if (closed) out.push(h("button",{class:"champ-banner", onclick:()=>{S.tab="champion"; render(); window.scrollTo(0,0);}},
     trophy(24), h("span",null, h("strong",null,"Season complete"), h("span",null,"Meet the Tinpot Tour Champion")), chevron()));
 
@@ -580,7 +609,7 @@ function viewTable(){
   // You go up one for each player you were level with or behind who is now behind you, and down one for
   // each player who was behind you and is now ahead. So breaking away from a tie moves you up without
   // moving the players you left behind down.
-  const played = seasonRounds().filter(r=>roundStatus(r)==="complete").sort((a,b)=>a.date<b.date?-1:1);
+  const played = seasonRounds().filter(r=>roundStatus(r)==="complete" && r.type!=="final").sort((a,b)=>a.date<b.date?-1:1);
   const latest = played[played.length-1];
   const before = latest ? Object.fromEntries(withPositions(leaderboard(latest.id), closed).map(b=>[b.pid,b.pos])) : null;
   const now = Object.fromEntries(lb.map(b=>[b.pid,b.pos]));
@@ -596,7 +625,8 @@ function viewTable(){
   };
   if (!lb.length) return [...out, h("div",{class:"panel empty muted"},"No players yet.")];
 
-  const top = lb[0];
+  // Once the Tour Championship is played its winner is champion, whatever the season table says
+  const top = closed ? (lb.find(b=>b.pid===finalResults(fin)[0].pid) || lb[0]) : lb[0];
   if (top.entries.length){
     const outright = !lb[1] || lb[1].total < top.total;
     out.push(h("section",{class:"leader"},
@@ -619,7 +649,7 @@ function viewTable(){
         h("div",{class:"title-it when"}, fmtDate(next.date)),
         h("div",{class:"small muted"}, roundLabel(next)),
         h("div",{class:"spread", style:"margin-top:8px"},
-          h("span",{class:"small", style:"font-weight:600"}, "Winner earns "+5*(TYPES[next.type]?.mult||1)+" Cup pts"),
+          h("span",{class:"small", style:"font-weight:600"}, next.type==="final" ? "Winner is the Tinpot Tour Champion" : "Winner earns "+5*(TYPES[next.type]?.mult||1)+" Cup pts"),
           h("button",{class:"btn red", onclick:()=>{S.cardRound=next.id; S.hole=firstOpenHole(next); S.tab="card"; render();}}, isLive?"Live card":"Scorecard")))));
   }
 
@@ -647,7 +677,8 @@ function viewTable(){
   out.push(board);
   const bo = +S.settings.bestOf;
   out.push(h("p",{class:"small muted", style:"margin-top:12px"},
-    `Every event pays 5, 3 and 1. Away Day Majors and the Tour Championship count double. Ties share the points. `,
+    `Every event pays 5, 3 and 1. Away Day Majors count double. Ties share the points. `,
+    `The Tour Championship is winner takes all, with a head start for the season's leaders. `,
     bo>0 ? `Your best ${bo} events count.` : `Every event counts.`, before ? " Arrows show movement since the last event." : "", " Tap a name for their events."));
   return out;
 }
@@ -674,10 +705,10 @@ function viewRounds(){
 
   if (!rs.some(r=>r.type==="final")){
     out.push(h("section",{class:"finale"},
-      h("div",{class:"strip eyebrow"}, trophy(16), "Season finale · ×2"),
+      h("div",{class:"strip eyebrow"}, trophy(16), "Season finale · Winner takes all"),
       h("div",{class:"body"},
         h("div",{class:"title-it", style:"font-size:20px;font-weight:900;color:var(--navy-ink)"},"Tour Championship"),
-        h("p",{class:"small muted", style:"margin:4px 0 0"},"Set it up when you're ready to finish. Once it's played the season closes and the Tinpot Tour Champion is crowned."),
+        h("p",{class:"small muted", style:"margin:4px 0 0"},"Set it up when you're ready to finish. Everyone gets a head start from where they sit in the table, and whoever wins on the day is the Tinpot Tour Champion."),
         S.isOwner ? h("button",{class:"btn", style:"margin-top:10px", onclick:()=>startRoundEditor(null,"final")},"Set up the Tour Championship") : null)));
   }
   if (!rs.length){ out.push(h("div",{class:"panel empty muted", style:"margin-top:12px"}, S.isOwner?"No events yet. Set one up and it'll appear on everyone's phone.":"No events set up yet.")); return out; }
@@ -689,20 +720,24 @@ function viewRounds(){
       h("div",{class:"head"}, dateBlock(r.date),
         h("div",{class:"info"},
           h("div",{class:"spread"},
-            h("span",{class:"eyebrow", style:"color:var(--navy-ink)"}, TYPES[r.type].label+(TYPES[r.type].mult>1?" · ×2":"")),
+            h("span",{class:"eyebrow", style:"color:var(--navy-ink)"}, typeLine(r)),
             st==="live"?h("span",{class:"badge live"},"Live"):st==="complete"?h("span",{class:"badge"},"Complete"):null),
           h("div",{class:"small muted"}, roundLabel(r)))));
     const tail = h("div",{class:"tail"});
+    const isFinal = r.type==="final";
+    const starts = isFinal ? (r.start || defaultStarts(r.players)) : null;
     if (st==="complete"){
       tail.append(h("table",{class:"result"},
-        h("tr",null, h("th",{class:"p"},"POS"), h("th",null,"PLAYER"), h("th",{class:"n"},"STABLEFORD"), h("th",{class:"n"},"CUP")),
+        h("tr",null, h("th",{class:"p"},"POS"), h("th",null,"PLAYER"), h("th",{class:"n"},"STABLEFORD"), h("th",{class:"n"}, isFinal?"TOTAL":"CUP")),
         roundResults(r).map(x=>h("tr",null,
           h("td",{class:"p"}, x.pos),
-          h("td",null, h("span",{class:"who"}, flag(playerById(x.pid)?.country,18), h("strong",null,pname(x.pid))), h("span",{class:"muted"}," plays off "+(r.hcp?.[x.pid]?.ph??"?"))),
+          h("td",null, h("span",{class:"who"}, flag(playerById(x.pid)?.country,18), h("strong",null,pname(x.pid))),
+            h("span",{class:"muted"}," plays off "+(r.hcp?.[x.pid]?.ph??"?")+(isFinal?", starts "+fmtStart(x.start):""))),
           h("td",{class:"n"}, x.score),
-          h("td",{class:"n"}, "+"+fmtPts(x.pts))))));
+          h("td",{class:"n"}, isFinal ? fmtPts(x.total) : "+"+fmtPts(x.pts))))));
     } else {
-      tail.append(h("div",{class:"row small", style:"gap:14px"}, r.players.map(pid=>h("span",{class:"who"}, flag(playerById(pid)?.country,18), h("span",null, pname(pid)+" "+(r.hcp?.[pid]?.ph??""))))));
+      tail.append(h("div",{class:"row small", style:"gap:14px"}, r.players.map(pid=>h("span",{class:"who"}, flag(playerById(pid)?.country,18),
+        h("span",null, pname(pid)+" "+(r.hcp?.[pid]?.ph??"")+(isFinal?" · starts "+fmtStart(starts[pid]):""))))));
     }
     const actions = h("div",{class:"row", style:"margin-top:10px"});
     actions.append(h("button",{class:"btn ghost", onclick:()=>{S.cardRound=r.id; S.hole=firstOpenHole(r); S.fullCard=st==="complete"; S.tab="card"; render();}}, st==="complete"?"View card":"Open scorecard"));
@@ -746,6 +781,8 @@ function viewCard(){
   const i = S.hole-1;
   out.push(h("div",{class:"hole-head"}, h("div",{class:"no"},"Hole "+S.hole), h("div",{class:"meta"},"Par "+c.par[i], h("div",{class:"small muted", style:"font-family:var(--body);font-weight:400"},"Stroke index "+c.si[i]))));
   const players = h("div",{class:"stack"});
+  // In the Tour Championship each player's running total includes their head start
+  const starts = r.type==="final" ? (r.start || defaultStarts(r.players)) : null;
   for (const pid of r.players){
     const ph = r.hcp?.[pid]?.ph ?? 0; const sh = shotsOn(ph, c.si[i]);
     const val = strokesFor(r.id,pid)[i];
@@ -764,7 +801,10 @@ function viewCard(){
         h("span",null, "Plays off "+ph+", ", stableford(r,pid)+" pts thru "+thru(r,pid)),
         h("span",{class:"row", style:"gap:8px"},
           h("button",{class:"pick"+(val==="P"?" on":""), disabled:locked, onclick:()=>set(val==="P"?null:"P")},"Pick up"),
-          h("span",{class:"hp"+(val==null?"":pts>=3?" good":pts===0?" zero":"")}, val==null?"–":pts+" pts")))));
+          h("span",{class:"hp"+(val==null?"":pts>=3?" good":pts===0?" zero":"")}, val==null?"–":pts+" pts"))),
+      starts ? h("div",{class:"final-total"},
+        h("span",null, "Tour Championship total"),
+        h("span",null, stableford(r,pid)+" + "+fmtPts(+starts[pid]||0)+" start = ", h("strong",null, fmtPts(stableford(r,pid)+(+starts[pid]||0))))) : null));
   }
   out.push(players);
   out.push(h("div",{class:"navrow"},
@@ -798,10 +838,13 @@ function fullCardTable(r,c){
 function viewChampion(){
   const fin = seasonFinal();
   if (!fin) return [h("div",{class:"panel empty muted", style:"margin-top:24px"},"The Tinpot Tour Champion is crowned once the Tour Championship has been played.")];
-  const lb = withPositions(leaderboard(), true); const c = lb[0]; const country = playerById(c.pid)?.country;
+  // The Tour Championship result decides it: its winner is champion and its order is the final order
+  const res = finalResults(fin), lb = leaderboard();
+  const c = lb.find(b=>b.pid===res[0].pid) || {pid:res[0].pid, total:0, entries:[], wins:0};
+  const country = playerById(c.pid)?.country;
   const majors = c.entries.filter(e=>e.pos===1 && e.r.type==="major").length;
-  const onTheDay = roundResults(fin).find(x=>x.pid===c.pid);
   const yr = (S.settings?.season||"").match(/\d{4}/)?.[0] || "";
+  const seedOf = pid => withPositions(lb, true).find(b=>b.pid===pid)?.pos;
   return [h("section",{class:"champ"},
     h("div",{class:"champ-hero"}, yr ? h("span",{class:"champ-year", "aria-hidden":"true"}, yr) : null, avatar(c.pid, 190, "av tall")),
     h("div",{class:"champ-band"},
@@ -810,10 +853,11 @@ function viewChampion(){
       country ? h("div",{class:"champ-country"}, flag(country,24), COUNTRIES[country]) : null),
     h("div",{class:"champ-stats"}, stat(fmtPts(c.total),"CUP PTS"), stat(c.entries.length,"EVENTS"), stat(c.wins,"WINS"), stat(majors,"MAJORS")),
     h("div",{class:"champ-rest"},
-      h("div",{class:"eyebrow"},"Final standings"),
-      lb.slice(1).map(b=>h("div",{class:"champ-row"}, h("span",{class:"p"}, b.pos), who(b.pid,34), h("span",{class:"n"}, fmtPts(b.total)))),
-      h("p",null, "Crowned at the Tour Championship, "+fmtDate(fin.date)+", "+(S.courses[fin.courseId]?.name||"")+"."+
-        (onTheDay ? " Finished "+ordinal(onTheDay.pos)+" on the day with "+onTheDay.score+" pts." : ""))))];
+      h("div",{class:"eyebrow"},"Tour Championship result"),
+      res.map(x=>h("div",{class:"champ-row"}, h("span",{class:"p"}, x.pos), who(x.pid,34),
+        h("span",{class:"n", title:`${x.score} Stableford ${fmtStart(x.start)} start`}, fmtPts(x.total)))),
+      h("p",null, "Won the Tour Championship, "+fmtDate(fin.date)+", "+(S.courses[fin.courseId]?.name||"")+", with "+
+        res[0].score+" Stableford points and a "+fmtStart(res[0].start)+" head start from "+ordinal(seedOf(c.pid)||1)+" in the season.")))];
 }
 
 /* ---------- setup (owner) ---------- */
@@ -934,6 +978,7 @@ function startRoundEditor(r, type){
   S.editRound = r ? JSON.parse(JSON.stringify(r)) : {id:uid("r_"), isNew:true, date:today(), courseId:c0.id, teeId:c0.tees[0].id, type:type||"standard",
     players:S.settings.players.map(p=>p.id), hcp:{}, season:S.settings.season};
   const d = S.editRound;
+  if (d.type==="final" && !d.start) d.start = defaultStarts(d.players);
   const sug = r ? {} : suggestedAdj(d.type, d.date, d.id);
   for (const p of S.settings.players){
     if (!d.hcp[p.id]) d.hcp[p.id] = {index:p.index, adj:sug[p.id]||0};
@@ -956,12 +1001,25 @@ function viewRoundEditor(){
       Object.values(S.courses).map(x=>h("option",{value:x.id, selected:x.id===d.courseId}, x.name)))),
     h("label",{class:"field"}, h("span",null,"Tees"), h("select",{onchange:e=>{d.teeId=e.target.value; render();}},
       (c?.tees||[]).map(t=>h("option",{value:t.id, selected:t.id===d.teeId}, `${t.name} (${t.cr} / ${t.slope})`)))),
-    h("label",{class:"field"}, h("span",null,"Event type"), h("select",{onchange:e=>{d.type=e.target.value; refreshSug(); render();}},
-      Object.entries(TYPES).map(([k,v])=>h("option",{value:k, selected:k===d.type}, v.label+(v.mult>1?", double points":""))))),
-    d.type==="final" ? h("p",{class:"small muted"},"Once this is played and submitted, the season closes and the Tinpot Tour Champion is crowned.") : null,
+    h("label",{class:"field"}, h("span",null,"Event type"), h("select",{onchange:e=>{d.type=e.target.value; if (d.type==="final" && !d.start) d.start=defaultStarts(d.players); refreshSug(); render();}},
+      Object.entries(TYPES).map(([k,v])=>h("option",{value:k, selected:k===d.type}, v.label+(k==="final"?", winner takes all":v.mult>1?", double points":""))))),
+    d.type==="final" ? h("p",{class:"small muted"},"Winner takes all. Once this is played and submitted, the season closes and whoever has the most Stableford points plus head start is the Tinpot Tour Champion.") : null,
     h("div",null, h("span",{class:"small muted"},"Playing (league rounds need all three)"),
       S.settings.players.map(p=>h("label",{class:"check"}, h("input",{type:"checkbox", checked:d.players.includes(p.id),
         onchange:e=>{ d.players = e.target.checked ? [...d.players,p.id] : d.players.filter(x=>x!==p.id); render(); }}), h("span",null,p.name))))));
+  if (d.type==="final"){
+    const seeds = seasonSeeds();
+    out.push(h("h3",null,"Head start"));
+    out.push(h("p",{class:"small muted"},`Bonus Stableford points each player starts the Tour Championship with. Filled in from the season table at +${DEFAULT_START.join(", +").replace(/\+0$/,"0")}. Change them however you like. Halves are fine.`));
+    const st = h("table",{class:"grid"}, h("tr",null, h("th",null,"Player"), h("th",null,"Season"), h("th",null,"Head start")));
+    for (const pid of d.players){
+      st.append(h("tr",null, h("td",{class:"name"}, pname(pid)), h("td",null, seeds[pid] ? ordinal(seeds[pid]) : "–"),
+        h("td",null, h("input",{type:"number", class:"tiny", inputmode:"decimal", min:"0", max:"30", step:"0.5", "aria-label":"Head start for "+pname(pid),
+          value:d.start?.[pid] ?? 0, oninput:e=>{ (d.start ||= {})[pid] = e.target.value; }}))));
+    }
+    out.push(h("div",{class:"panel scroll"}, st));
+    out.push(h("button",{class:"btn ghost", style:"margin-top:10px", onclick:()=>{ d.start = defaultStarts(d.players); render(); }},"Reset to the season table"));
+  }
   out.push(h("h3",null,"Handicaps for this event"));
   out.push(h("p",{class:"small muted"},`Course handicap uses index × slope ÷ 113 plus rating minus par. Playing handicap is ${S.settings.allowance}% of that plus any league adjustment.`));
   const tb = h("table",{class:"grid"}, h("tr",null, h("th",null,"Player"), h("th",null,"Index"), h("th",null,"Course"), h("th",null,"Adjust"), h("th",null,"Plays off")));
@@ -992,6 +1050,15 @@ async function saveRound(){
     hcp[pid] = {index:+row.index, adj:+row.adj||0, ch:v.ch, ph:v.ph};
   }
   const clean = {id:d.id, date:d.date, courseId:d.courseId, teeId:d.teeId, type:d.type, players:d.players, hcp, season:d.season||S.settings.season};
+  if (d.type==="final"){
+    const start = {};
+    for (const pid of d.players){
+      const v = Number(d.start?.[pid] ?? 0);
+      if (!Number.isFinite(v) || v<0 || v>30) return toast("Head starts need to be between 0 and 30 for "+pname(pid));
+      start[pid] = Math.round(v*2)/2;
+    }
+    clean.start = start;
+  }
   if (await guarded(()=>S.db.doc("admin/cfg/rounds/"+d.id).set(clean), "Event saved. Everyone can see it now")){ S.editRound=null; S.tab="rounds"; render(); }
 }
 

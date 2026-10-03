@@ -582,8 +582,10 @@ async function setPhoto(pid, file){
   if (!img.startsWith(PHOTO_PREFIX) || img.length > 190000) return toast("That picture couldn't be shrunk enough. Try a different one");
   await guarded(()=>S.db.doc("photos/"+pid).set({img, at:serverTimestamp()}), "Photo saved");
 }
-function who(pid, size=38){
-  return h("span",{class:"who"}, avatar(pid, size), flag(playerById(pid)?.country), h("strong",null,pname(pid)));
+// Leaderboard style, as on the PGA Tour site: "Scottie Scheffler" shows as "S. Scheffler". A single name stays as it is
+const shortName = n => { const p = String(n).trim().split(/\s+/); return p.length>1 ? p[0][0].toUpperCase()+". "+p.slice(1).join(" ") : n; };
+function who(pid, size=38, short=false){
+  return h("span",{class:"who"}, avatar(pid, size), flag(playerById(pid)?.country), h("strong",null, short ? shortName(pname(pid)) : pname(pid)));
 }
 function moveMark(d){
   if (d==null) return null;
@@ -670,7 +672,7 @@ function viewTable(){
       "aria-label":`${pname(b.pid)}, ${b.entries.length ? `${b.entries.length} played, ${counted} counting, ${b.wins} win${b.wins===1?"":"s"}, best ${b.best} pts` : "yet to play"}, ${fmtPts(b.total)} points${moveText(moved(b))}`,
       onclick:()=>{S.openPlayer=open?null:b.pid; render();}},
       h("div",{class:"pos"}, moveMark(moved(b)), h("span",{class:"n"}, b.total>0||b.entries.length? b.pos : "–")),
-      who(b.pid),
+      who(b.pid, 38, true),
       h("div",{class:"ev"}, b.entries.length),
       h("div",{class:"pts"}, fmtPts(b.total))));
     if (open && b.entries.length){

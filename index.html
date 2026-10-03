@@ -173,6 +173,10 @@ textarea{width:100%;padding:10px;border:1px solid var(--rule);border-radius:6px;
 /* News */
 .news-card{display:flex;flex-direction:column;gap:4px;width:100%;margin-bottom:12px;padding:12px 14px;text-align:left;color:inherit;background:var(--panel);border:1px solid var(--rule);border-radius:8px}
 .news-head{font-weight:800;font-style:italic;font-size:18px;line-height:1.2}
+.news-card.with-pic{flex-direction:row;align-items:flex-start;gap:12px}
+.news-card-text{display:flex;flex-direction:column;gap:4px;min-width:0}
+.post-head{display:flex;gap:12px;align-items:flex-start}
+.post-head .who{margin-top:4px}
 .post{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:14px;margin-bottom:12px}
 .post-title{margin:6px 0 2px;font-weight:800;font-style:italic;font-size:21px;line-height:1.2;text-transform:none;letter-spacing:0}
 .story{margin-top:10px}
@@ -621,11 +625,14 @@ function viewTable(){
   if (closed) out.push(h("button",{class:"champ-banner", onclick:()=>{S.tab="champion"; render(); window.scrollTo(0,0);}},
     trophy(24), h("span",null, h("strong",null,"Season complete"), h("span",null,"Meet the Tinpot Tour Champion")), chevron()));
   const headline = sortedNews()[0];
-  if (headline) out.push(h("button",{class:"news-card", onclick:()=>{S.tab="news"; render(); window.scrollTo(0,0);}},
-    h("span",{class:"eyebrow red"},"Latest news"),
-    h("span",{class:"news-head"}, headline.title),
-    h("span",{class:"small muted"}, headline.body.length>130 ? headline.body.slice(0,130).trim()+"…" : headline.body),
-    h("span",{class:"small", style:"font-weight:700;color:var(--navy-ink)"},"Read more")));
+  if (headline){ const fp = newsPid(headline);
+    out.push(h("button",{class:"news-card"+(fp?" with-pic":""), onclick:()=>{S.tab="news"; render(); window.scrollTo(0,0);}},
+      fp ? avatar(fp, 56, "av sq") : null,
+      h("span",{class:"news-card-text"},
+        h("span",{class:"eyebrow red"},"Latest news"),
+        h("span",{class:"news-head"}, headline.title),
+        h("span",{class:"small muted"}, headline.body.length>130 ? headline.body.slice(0,130).trim()+"…" : headline.body),
+        h("span",{class:"small", style:"font-weight:700;color:var(--navy-ink)"},"Read more")))); }
 
   // Once the season is closed the tiebreaks have settled every position
   const lb = withPositions(leaderboard(), closed);
@@ -892,6 +899,14 @@ const latestResult = () => seasonRounds().filter(r=>roundStatus(r)==="complete")
 const sortedNews = () => Object.values(S.news).sort((a,b)=>b.at-a.at);
 const fmtWhen = ms => ms ? new Date(ms).toLocaleDateString("en-GB",{weekday:"short", day:"numeric", month:"short", year:"numeric"}) : "Just now";
 const paras = body => String(body||"").split(/\n\s*\n/).map(t=>t.trim()).filter(Boolean).map(t=>h("p",{class:"story-p"}, t));
+// Whose photo goes on a post: the featured player if one was picked, nobody for "none",
+// otherwise (Auto, and posts from before this existed) the winner of the event it's about
+function newsPid(n){
+  if (n.pid==="none") return null;
+  if (n.pid && playerById(n.pid)) return n.pid;
+  const r = n.roundId && S.rounds[n.roundId];
+  return r && roundStatus(r)==="complete" ? roundResults(r)[0]?.pid || null : null;
+}
 const placeTxt = (pos, rows) => (rows.filter(y=>y.pos===pos).length>1 ? "=" : "") + ordinal(pos);
 
 // Everything a news writer needs about one round, as plain text to paste into the Tinpot Tour News project
@@ -969,10 +984,15 @@ function viewNews(){
   if (!posts.length) out.push(h("div",{class:"panel empty muted"}, S.isOwner ? "No news yet. After a round tap Copy for news, get your article written, then New post." : "No news yet. Check back after the next round."));
   for (const n of posts){
     const r = n.roundId && S.rounds[n.roundId];
+    const fp = newsPid(n);
     out.push(h("article",{class:"post"},
-      h("div",{class:"eyebrow red"}, fmtWhen(n.at)+(r ? " · "+TYPES[r.type].label : "")),
-      h("h3",{class:"post-title"}, n.title),
-      r ? h("div",{class:"small muted"}, fmtDate(r.date)+", "+roundLabel(r)) : null,
+      h("div",{class:"post-head"},
+        fp ? avatar(fp, 84, "av sq") : null,
+        h("div",{style:"min-width:0"},
+          h("div",{class:"eyebrow red"}, fmtWhen(n.at)+(r ? " · "+TYPES[r.type].label : "")),
+          h("h3",{class:"post-title"}, n.title),
+          fp ? h("div",{class:"who small"}, flag(playerById(fp)?.country,18), h("strong",null, pname(fp))) : null)),
+      r ? h("div",{class:"small muted", style:"margin-top:8px"}, fmtDate(r.date)+", "+roundLabel(r)) : null,
       h("div",{class:"story"}, paras(n.body)),
       S.isOwner ? h("div",{class:"row", style:"margin-top:4px"},
         h("button",{class:"btn ghost", onclick:()=>{ S.editNews={...n}; render(); window.scrollTo(0,0); }},"Edit"),
@@ -988,6 +1008,10 @@ function viewNewsEditor(){
       h("label",{class:"field"}, h("span",null,"Headline"), h("input",{type:"text", maxlength:"140", value:n.title, oninput:e=>n.title=e.target.value})),
       h("label",{class:"field"}, h("span",null,"Story. Leave a blank line between paragraphs."),
         h("textarea",{rows:14, maxlength:"8000", value:n.body, oninput:e=>n.body=e.target.value})),
+      h("label",{class:"field"}, h("span",null,"Featured player (their photo goes on the post)"), h("select",{onchange:e=>n.pid=e.target.value},
+        h("option",{value:"", selected:!n.pid},"Auto: winner of the event"),
+        (S.settings?.players||[]).map(p=>h("option",{value:p.id, selected:n.pid===p.id}, p.name)),
+        h("option",{value:"none", selected:n.pid==="none"},"No picture"))),
       h("label",{class:"field"}, h("span",null,"About which event? (optional)"), h("select",{onchange:e=>n.roundId=e.target.value},
         h("option",{value:""},"Not about one event"),
         rounds.map(r=>h("option",{value:r.id, selected:n.roundId===r.id}, fmtDate(r.date)+", "+(S.courses[r.courseId]?.name||"")+(r.type!=="standard"?" ("+TYPES[r.type].label+")":"")))))),
@@ -1002,7 +1026,7 @@ async function saveNews(){
   if (title.length>140 || body.length>8000) return toast("Too long: headlines up to 140 characters, stories up to 8000");
   const id = n.id || uid("n_");
   // A new post gets the server's time; an edit keeps its original date (the rules check both)
-  const d = {title, body, at: n.isNew ? serverTimestamp() : n.atRaw, ...(n.roundId ? {roundId:n.roundId} : {})};
+  const d = {title, body, at: n.isNew ? serverTimestamp() : n.atRaw, ...(n.roundId ? {roundId:n.roundId} : {}), ...(n.pid ? {pid:n.pid} : {})};
   if (await guarded(()=>S.db.doc("news/"+id).set(d), n.isNew ? "Posted. Everyone can read it now" : "Post updated")){ S.editNews=null; render(); window.scrollTo(0,0); }
 }
 
@@ -1321,7 +1345,7 @@ function subscribe(){
   // News is an extra too: a refusal (rules not published yet) just shows no posts
   S.unsubs.push(onSnapshot(collection(fs,"news"), q=>{ const o={};
     q.docs.forEach(d=>{ const x = d.data({serverTimestamps:"estimate"});
-      o[d.id] = {id:d.id, title:x.title, body:x.body, roundId:x.roundId||"", atRaw:x.at, at:x.at?.toMillis?.() || 0}; });
+      o[d.id] = {id:d.id, title:x.title, body:x.body, roundId:x.roundId||"", pid:x.pid||"", atRaw:x.at, at:x.at?.toMillis?.() || 0}; });
     S.news=o; snapRender(); }, ()=>{ S.news={}; }));
 }
 

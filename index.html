@@ -169,6 +169,14 @@ label.btn:focus-within{outline:3px solid var(--red);outline-offset:2px}
 
 label.field{display:block;margin-bottom:12px}
 label.field>span{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
+textarea{width:100%;padding:10px;border:1px solid var(--rule);border-radius:6px;background:var(--bg);line-height:1.5;resize:vertical}
+/* News */
+.news-card{display:flex;flex-direction:column;gap:4px;width:100%;margin-bottom:12px;padding:12px 14px;text-align:left;color:inherit;background:var(--panel);border:1px solid var(--rule);border-radius:8px}
+.news-head{font-weight:800;font-style:italic;font-size:18px;line-height:1.2}
+.post{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:14px;margin-bottom:12px}
+.post-title{margin:6px 0 2px;font-weight:800;font-style:italic;font-size:21px;line-height:1.2;text-transform:none;letter-spacing:0}
+.story{margin-top:10px}
+.story-p{margin:0 0 10px;white-space:pre-line;line-height:1.55}
 input[type=text],input[type=number],input[type=date],select{width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--rule);border-radius:6px;background:var(--bg)}
 input.tiny{width:64px;padding:8px;text-align:center}
 .check{display:flex;gap:10px;align-items:center;padding:6px 0}
@@ -302,7 +310,7 @@ const S = {
   tab:"table", openPlayer:null,
   cardRound:null, hole:1, fullCard:false,
   draftLeague:null, editCourse:null, editRound:null,
-  local:{}, photos:{}, phase:"loading", unsubs:[], fs:null, auth:null, uid:null, pinBusy:false,
+  local:{}, photos:{}, news:{}, editNews:null, newsCopy:null, phase:"loading", unsubs:[], fs:null, auth:null, uid:null, pinBusy:false,
   theme:(()=>{ try { const t=localStorage.getItem("theme"); return t==="light"||t==="dark" ? t : "auto"; } catch(_) { return "auto"; } })()
 };
 
@@ -612,6 +620,12 @@ function viewTable(){
   const fin = seasonFinal(), closed = !!fin;
   if (closed) out.push(h("button",{class:"champ-banner", onclick:()=>{S.tab="champion"; render(); window.scrollTo(0,0);}},
     trophy(24), h("span",null, h("strong",null,"Season complete"), h("span",null,"Meet the Tinpot Tour Champion")), chevron()));
+  const headline = sortedNews()[0];
+  if (headline) out.push(h("button",{class:"news-card", onclick:()=>{S.tab="news"; render(); window.scrollTo(0,0);}},
+    h("span",{class:"eyebrow red"},"Latest news"),
+    h("span",{class:"news-head"}, headline.title),
+    h("span",{class:"small muted"}, headline.body.length>130 ? headline.body.slice(0,130).trim()+"…" : headline.body),
+    h("span",{class:"small", style:"font-weight:700;color:var(--navy-ink)"},"Read more")));
 
   // Once the season is closed the tiebreaks have settled every position
   const lb = withPositions(leaderboard(), closed);
@@ -754,6 +768,7 @@ function viewRounds(){
     if (S.isOwner){
       actions.append(h("button",{class:"btn ghost", onclick:()=>startRoundEditor(r)},"Edit"));
       if (st==="complete") actions.append(h("button",{class:"btn ghost", onclick:()=>reopenRound(r)},"Reopen"));
+      if (st==="complete" && r.id===latestResult()?.id) actions.append(h("button",{class:"btn ghost", onclick:()=>copyForNews(r)},"Copy for news"));
       actions.append(h("button",{class:"btn danger", onclick:()=>deleteRound(r)},"Delete"));
     }
     tail.append(actions); card.append(tail); list.append(card);
@@ -868,6 +883,127 @@ function viewChampion(){
         h("span",{class:"n", title:`${x.score} Stableford ${fmtStart(x.start)} start`}, fmtPts(x.total)))),
       h("p",null, "Won the Tour Championship, "+fmtDate(fin.date)+", "+(S.courses[fin.courseId]?.name||"")+", with "+
         res[0].score+" Stableford points and a "+fmtStart(res[0].start)+" head start from "+ordinal(seedOf(c.pid)||1)+" in the season.")))];
+}
+
+/* ---------- news ---------- */
+// Posts live in Firestore at news/{id}: {title, body, at, roundId?}. Members read them, only the organiser writes.
+// Stories are shown as plain text, one <p> per paragraph
+const latestResult = () => seasonRounds().filter(r=>roundStatus(r)==="complete").sort((a,b)=>a.date<b.date?-1:1).pop();
+const sortedNews = () => Object.values(S.news).sort((a,b)=>b.at-a.at);
+const fmtWhen = ms => ms ? new Date(ms).toLocaleDateString("en-GB",{weekday:"short", day:"numeric", month:"short", year:"numeric"}) : "Just now";
+const paras = body => String(body||"").split(/\n\s*\n/).map(t=>t.trim()).filter(Boolean).map(t=>h("p",{class:"story-p"}, t));
+const placeTxt = (pos, rows) => (rows.filter(y=>y.pos===pos).length>1 ? "=" : "") + ordinal(pos);
+
+// Everything a news writer needs about one round, as plain text to paste into the Tinpot Tour News project
+function newsMatchSummary(r){
+  const res = roundResults(r), c = S.courses[r.courseId], isFinal = r.type==="final";
+  const nat = pid => countryName(playerById(pid)?.country) ? " ("+countryName(playerById(pid).country)+")" : "";
+  const season = seasonRounds().filter(x=>roundStatus(x)==="complete" && x.type!=="final").sort((a,b)=>a.date<b.date?-1:1);
+  const L = ["TINPOT TOUR MATCH SUMMARY", `Season: ${S.settings.season}`,
+    `Event: ${TYPES[r.type].label}${isFinal ? " (winner takes all, with head starts)" : TYPES[r.type].mult>1 ? " (double Cup points)" : ""}`,
+    `Date: ${new Date(r.date+"T12:00:00").toLocaleDateString("en-GB",{weekday:"long", day:"numeric", month:"long", year:"numeric"})}`,
+    `Course: ${roundLabel(r)}`];
+  if (!isFinal) L.push(`Event number this season: ${season.findIndex(x=>x.id===r.id)+1}`);
+  L.push("", "RESULT (net Stableford)");
+  for (const x of res){
+    const st = strokesFor(r.id,x.pid), ph = r.hcp?.[x.pid]?.ph ?? 0;
+    let out9=0, in9=0, birdies=0, eagles=0, blobs=0;
+    for (let i=0;i<18;i++){ const p = holePoints(st[i], c.par[i], shotsOn(ph, c.si[i]));
+      if (i<9) out9+=p; else in9+=p; if (p>=4) eagles++; else if (p===3) birdies++; if (p===0) blobs++; }
+    L.push(`${placeTxt(x.pos,res)} ${pname(x.pid)}${nat(x.pid)}: ${x.score} pts, plays off ${ph}, `+
+      (isFinal ? `head start ${fmtStart(x.start)}, total ${fmtPts(x.total)}` : `${fmtPts(x.pts)} Cup pts`));
+    L.push(`   Front nine ${out9}, back nine ${in9}. Net birdies ${birdies}, net eagles or better ${eagles}, blobs (no points) ${blobs}.`);
+  }
+  if (res[1]) L.push(`Winning margin: ${fmtPts(isFinal ? res[0].total-res[1].total : res[0].score-res[1].score)} pts`);
+  L.push("");
+  if (isFinal){
+    L.push(`TINPOT TOUR CHAMPION: ${pname(res[0].pid)}`, "Season table going into the Tour Championship (Cup points):");
+    for (const b of withPositions(leaderboard(), true)) L.push(`${ordinal(b.pos)} ${pname(b.pid)} ${fmtPts(b.total)} pts, ${b.wins} win${b.wins===1?"":"s"}`);
+  } else {
+    const before = withPositions(leaderboard(r.id)), after = withPositions(leaderboard());
+    L.push("TINPOT CUP STANDINGS AFTER THIS EVENT (position before it)");
+    for (const b of after){
+      const p = before.find(o=>o.pid===b.pid);
+      L.push(`${placeTxt(b.pos,after)} ${pname(b.pid)} ${fmtPts(b.total)} pts (was ${p ? placeTxt(p.pos,before)+" on "+fmtPts(p.total)+" pts" : "unranked"})`);
+    }
+    if (after[1]) L.push(`Gap at the top: ${fmtPts(after[0].total-after[1].total)} pts`);
+  }
+  L.push("", "FORM THIS SEASON (finishes oldest first)");
+  const lb = leaderboard();
+  for (const b of lb){
+    const es = [...b.entries].sort((a,e)=>a.r.date<e.r.date?-1:1);
+    const fins = es.map(e=>placeTxt(e.pos, roundResults(e.r)));
+    let run=0; for (let i=es.length-1;i>=0 && es[i].pos===1;i--) run++;
+    let dry=0; for (let i=es.length-1;i>=0 && es[i].pos!==1;i--) dry++;
+    const best = es.reduce((m,e)=>!m || e.score>=m.score ? e : m, null); // on a tie, the most recent
+    L.push(`${pname(b.pid)}: ${fins.join(", ") || "no events yet"}. Wins ${b.wins}. `+
+      (run>1 ? `${run} wins in a row. ` : dry>1 ? `No win in ${dry} events. ` : "")+
+      `Best round ${best ? `${best.score} pts (${fmtDate(best.r.date)}, ${S.courses[best.r.courseId]?.name||""})` : "none yet"}.`);
+  }
+  const pbs = res.filter(x=>{ const b = lb.find(y=>y.pid===x.pid); return b && b.entries.length>1 && x.score>=b.best; });
+  if (pbs.length) L.push(`Matched or beat their season best today: ${pbs.map(x=>pname(x.pid)+" ("+x.score+")").join(", ")}`);
+  const nextR = seasonRounds().filter(x=>roundStatus(x)!=="complete" && x.id!==r.id && x.date>=r.date).sort((a,b)=>a.date<b.date?-1:1)[0];
+  L.push("", nextR ? `UP NEXT: ${TYPES[nextR.type].label}, ${fmtDate(nextR.date)}, ${roundLabel(nextR)}` : "UP NEXT: not scheduled yet");
+  return L.join("\n");
+}
+async function copyForNews(r){
+  const text = newsMatchSummary(r);
+  try { await navigator.clipboard.writeText(text); toast("Match summary copied. Paste it into your Tinpot Tour News project"); }
+  // Some phones block copying: show it in a box to copy by hand instead
+  catch(_) { S.newsCopy = text; S.tab = "news"; render(); window.scrollTo(0,0); }
+}
+function viewNews(){
+  if (S.editNews) return viewNewsEditor();
+  const out = [h("div",{class:"pagehead"}, h("h2",null,"Tour News"), h("div",{class:"sub"},"The latest from the Tinpot Tour"))];
+  if (S.newsCopy) out.push(h("div",{class:"panel", style:"margin-bottom:12px"},
+    h("p",{class:"small"},"Your phone didn't allow copying automatically. Tap the box, select all, and copy it:"),
+    h("textarea",{readonly:true, rows:10, value:S.newsCopy, "aria-label":"Match summary", onfocus:e=>e.target.select()}),
+    h("button",{class:"btn ghost", style:"margin-top:8px", onclick:()=>{S.newsCopy=null; render();}},"Done")));
+  if (S.isOwner){
+    const last = latestResult();
+    out.push(h("div",{class:"row", style:"margin-bottom:12px"},
+      h("button",{class:"btn red", onclick:()=>{ S.editNews={isNew:true, title:"", body:"", roundId:last?.id||""}; render(); window.scrollTo(0,0); }},"New post"),
+      last ? h("button",{class:"btn ghost", onclick:()=>copyForNews(last)},"Copy for news") : null));
+  }
+  const posts = sortedNews();
+  if (!posts.length) out.push(h("div",{class:"panel empty muted"}, S.isOwner ? "No news yet. After a round tap Copy for news, get your article written, then New post." : "No news yet. Check back after the next round."));
+  for (const n of posts){
+    const r = n.roundId && S.rounds[n.roundId];
+    out.push(h("article",{class:"post"},
+      h("div",{class:"eyebrow red"}, fmtWhen(n.at)+(r ? " · "+TYPES[r.type].label : "")),
+      h("h3",{class:"post-title"}, n.title),
+      r ? h("div",{class:"small muted"}, fmtDate(r.date)+", "+roundLabel(r)) : null,
+      h("div",{class:"story"}, paras(n.body)),
+      S.isOwner ? h("div",{class:"row", style:"margin-top:4px"},
+        h("button",{class:"btn ghost", onclick:()=>{ S.editNews={...n}; render(); window.scrollTo(0,0); }},"Edit"),
+        h("button",{class:"btn danger", onclick:()=>{ if (confirm("Delete this post?")) guarded(()=>S.db.doc("news/"+n.id).delete(), "Post deleted"); }},"Delete")) : null));
+  }
+  return out;
+}
+function viewNewsEditor(){
+  const n = S.editNews;
+  const rounds = seasonRounds().filter(r=>roundStatus(r)==="complete").sort((a,b)=>a.date<b.date?1:-1);
+  return [h("div",{class:"pagehead"}, h("h2",null, n.isNew ? "New post" : "Edit post")),
+    h("div",{class:"panel"},
+      h("label",{class:"field"}, h("span",null,"Headline"), h("input",{type:"text", maxlength:"140", value:n.title, oninput:e=>n.title=e.target.value})),
+      h("label",{class:"field"}, h("span",null,"Story. Leave a blank line between paragraphs."),
+        h("textarea",{rows:14, maxlength:"8000", value:n.body, oninput:e=>n.body=e.target.value})),
+      h("label",{class:"field"}, h("span",null,"About which event? (optional)"), h("select",{onchange:e=>n.roundId=e.target.value},
+        h("option",{value:""},"Not about one event"),
+        rounds.map(r=>h("option",{value:r.id, selected:n.roundId===r.id}, fmtDate(r.date)+", "+(S.courses[r.courseId]?.name||"")+(r.type!=="standard"?" ("+TYPES[r.type].label+")":"")))))),
+    h("div",{class:"navrow"},
+      h("button",{class:"btn ghost", onclick:()=>{ S.editNews=null; render(); }},"Cancel"),
+      h("button",{class:"btn red", onclick:saveNews}, n.isNew ? "Publish" : "Save changes"))];
+}
+async function saveNews(){
+  const n = S.editNews, title = (n.title||"").trim(), body = (n.body||"").trim();
+  if (!title) return toast("Give the post a headline");
+  if (!body) return toast("The story is empty");
+  if (title.length>140 || body.length>8000) return toast("Too long: headlines up to 140 characters, stories up to 8000");
+  const id = n.id || uid("n_");
+  // A new post gets the server's time; an edit keeps its original date (the rules check both)
+  const d = {title, body, at: n.isNew ? serverTimestamp() : n.atRaw, ...(n.roundId ? {roundId:n.roundId} : {})};
+  if (await guarded(()=>S.db.doc("news/"+id).set(d), n.isNew ? "Posted. Everyone can read it now" : "Post updated")){ S.editNews=null; render(); window.scrollTo(0,0); }
 }
 
 /* ---------- setup (owner) ---------- */
@@ -1134,29 +1270,29 @@ function render(){
       h("p",null,"Set a league PIN, add your players and handicaps, then a course, then your first event."),
       h("button",{class:"btn", onclick:()=>{S.tab="setup"; render();}},"Start setup")));
   } else {
-    const v = {table:viewTable, champion:viewChampion, rounds:viewRounds, card:viewCard, setup:viewSetup}[S.tab]();
+    const v = {table:viewTable, champion:viewChampion, news:viewNews, rounds:viewRounds, card:viewCard, setup:viewSetup}[S.tab]();
     main.append(...v);
     if (S.tab==="setup" && !S.editCourse && !S.editRound) main.append(...pinSection());
   }
-  const tabs = [["table","Standings"]];
-  if (closed) tabs.push(["champion","Champion"]);
-  tabs.push(["rounds","Schedule"],["card","Scorecard"]);
+  // The Champion page opens from the "Season complete" banner on Standings, which keeps the bar to five tabs
+  const tabs = [["table","Standings"],["news","News"],["rounds","Schedule"],["card","Scorecard"]];
   if (S.isOwner) tabs.push(["setup","Setup"]);
   const nav = h("nav",{class:"tabs", "aria-label":"Sections"}, h("div",{class:"inner"},
     tabs.map(([k,l])=>h("button",{"aria-current":S.tab===k?"page":null, onclick:()=>{
       if (k==="card" && S.tab!=="card"){ S.cardRound = S.cardRound && S.rounds[S.cardRound] && roundStatus(S.rounds[S.cardRound])!=="complete" ? S.cardRound : null; S.fullCard=false; }
       if (k!=="setup"){ S.editCourse=null; S.editRound=null; }
+      if (k!=="news"){ S.editNews=null; S.newsCopy=null; }
       S.tab=k; render(); window.scrollTo(0,0); }}, l))));
   app.replaceChildren(header, main, nav);
 }
 function snapRender(){
   const a = document.activeElement;
-  if (a && /^(INPUT|SELECT)$/.test(a.tagName)){ S.pendingRender=true; return; }
+  if (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)){ S.pendingRender=true; return; }
   render();
 }
 document.addEventListener("focusout", ()=>setTimeout(()=>{
   const a=document.activeElement;
-  if (S.pendingRender && !(a && /^(INPUT|SELECT)$/.test(a.tagName))){ S.pendingRender=false; render(); }
+  if (S.pendingRender && !(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))){ S.pendingRender=false; render(); }
 },50));
 
 function teardown(){ (S.unsubs||[]).forEach(u=>u()); S.unsubs=[]; S.ready=false; }
@@ -1182,6 +1318,11 @@ function subscribe(){
   // Photos are extras: they don't hold up loading, and a refusal (say the rules aren't published yet)
   // just leaves silhouettes rather than sending anyone back to the PIN screen
   S.unsubs.push(onSnapshot(collection(fs,"photos"), q=>{ const o={}; q.docs.forEach(d=>o[d.id]=d.data().img); S.photos=o; snapRender(); }, ()=>{ S.photos={}; }));
+  // News is an extra too: a refusal (rules not published yet) just shows no posts
+  S.unsubs.push(onSnapshot(collection(fs,"news"), q=>{ const o={};
+    q.docs.forEach(d=>{ const x = d.data({serverTimestamps:"estimate"});
+      o[d.id] = {id:d.id, title:x.title, body:x.body, roundId:x.roundId||"", atRaw:x.at, at:x.at?.toMillis?.() || 0}; });
+    S.news=o; snapRender(); }, ()=>{ S.news={}; }));
 }
 
 function boot(){

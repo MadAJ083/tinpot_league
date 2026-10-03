@@ -92,7 +92,7 @@ p{margin:0 0 10px}
 label.btn{display:inline-flex;align-items:center;cursor:pointer}
 label.btn:focus-within{outline:3px solid var(--red);outline-offset:2px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;padding:0;margin:-1px}
-.flag{flex-shrink:0;display:block}
+.flag{flex-shrink:0;display:block;object-fit:cover;box-shadow:0 0 0 1px rgba(0,0,0,.18)}
 
 /* Cup leader */
 .leader{background:var(--panel);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
@@ -274,7 +274,25 @@ import { getAuth, onAuthStateChanged, signInAnonymously, signInWithPopup, signIn
 // The Tour Championship pays no Cup points: it's winner takes all, with head starts (see finalResults)
 const TYPES = { standard:{label:"Tour Event", mult:1}, major:{label:"Away Day Major", mult:2}, final:{label:"Tour Championship", mult:1} };
 const POINTS3 = [5,3,1];
-const COUNTRIES = { ENG:"England", SCO:"Scotland", WAL:"Wales", IRL:"Ireland", GBR:"Great Britain", IND:"India" };
+// Flags are the flag-icons SVGs in flags/ (MIT, github.com/lipis/flag-icons), one file per code. A page can't
+// list a folder, so the country codes are listed here. Names come from the phone's own list (UK English)
+const FLAG_CODES = ("ad ae af ag ai al am ao aq ar as at au aw ax az ba bb bd be bf bg bh bi bj bl bm bn bo bq br bs bt bv bw by bz "+
+  "ca cc cd cf cg ch ci ck cl cm cn co cp cr cu cv cw cx cy cz de dg dj dk dm do dz ec ee eg eh er es et fi fj fk fm fo fr "+
+  "ga gb gd ge gf gg gh gi gl gm gn gp gq gr gs gt gu gw gy hk hm hn hr ht hu ic id ie il im in io iq ir is it je jm jo jp "+
+  "ke kg kh ki km kn kp kr kw ky kz la lb lc li lk lr ls lt lu lv ly ma mc md me mf mg mh mk ml mm mn mo mp mq mr ms mt mu "+
+  "mv mw mx my mz na nc ne nf ng ni nl no np nr nu nz om pa pc pe pf pg ph pk pl pm pn pr ps pt pw py qa re ro rs ru rw sa "+
+  "sb sc sd se sg sh si sj sk sl sm sn so sr ss st sv sx sy sz tc td tf tg th tj tk tl tm tn to tr tt tv tw tz ua ug um us "+
+  "uy uz va vc ve vg vi vn vu wf ws xk ye yt za zm zw").split(" ");
+const HOME_NATIONS = { "gb-eng":"England", "gb-sct":"Scotland", "gb-wls":"Wales", "gb-nir":"Northern Ireland" };
+// Codes saved before the full set arrived keep working
+const OLD_CODES = { ENG:"gb-eng", SCO:"gb-sct", WAL:"gb-wls", IRL:"ie", GBR:"gb", IND:"in" };
+const regionName = (()=>{ try { const dn = new Intl.DisplayNames(["en-GB"], {type:"region"}); return c => dn.of(c.toUpperCase()); }
+  catch(_) { return c => c.toUpperCase(); } })();
+// Home nations first, then everyone else A to Z
+const COUNTRIES = Object.fromEntries([...Object.entries(HOME_NATIONS),
+  ...FLAG_CODES.map(c=>[c, regionName(c)]).sort((a,b)=>a[1].localeCompare(b[1],"en-GB"))]);
+const countryCode = c => OLD_CODES[c] || c;
+const countryName = c => COUNTRIES[countryCode(c)];
 
 /* ---------- state ---------- */
 const S = {
@@ -526,26 +544,10 @@ function themeButton(){
 }
 const chevron = () => s("svg",{width:18, height:18, viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", "stroke-width":2.2, "stroke-linecap":"round", "stroke-linejoin":"round", "aria-hidden":"true"}, s("path",{d:"M9 5l7 7-7 7"}));
 
+// Flags load as images from your own site (images can't run scripts), only the ones on screen
 function flag(code, w=20){
-  const name = COUNTRIES[code]; if (!name) return null;
-  const R = (x,y,width,height,fill) => s("rect",{x,y,width,height,fill});
-  const parts = {
-    ENG: [R(0,0,22,15,"#FFFFFF"), R(9,0,4,15,"#CE1124"), R(0,5.5,22,4,"#CE1124")],
-    SCO: [R(0,0,22,15,"#005EB8"), s("path",{d:"M0 0L22 15M22 0L0 15", stroke:"#FFFFFF", "stroke-width":2.6})],
-    // St David's cross: the dragon doesn't survive at 20px
-    WAL: [R(0,0,22,15,"#000000"), R(9,0,4,15,"#FFD100"), R(0,5.5,22,4,"#FFD100")],
-    IRL: [R(0,0,7.34,15,"#169B62"), R(7.33,0,7.34,15,"#FFFFFF"), R(14.66,0,7.34,15,"#FF883E")],
-    // Saffron, white and green with the navy Ashoka Chakra: a wheel of 24 spokes
-    IND: [R(0,0,22,5,"#FF9933"), R(0,5,22,5,"#FFFFFF"), R(0,10,22,5,"#138808"),
-          s("circle",{cx:11, cy:7.5, r:2.1, fill:"none", stroke:"#000080", "stroke-width":0.45}),
-          s("path",{d:Array.from({length:12},(_,k)=>{ const a=k*Math.PI/12, x=2*Math.cos(a), y=2*Math.sin(a);
-            return `M${(11+x).toFixed(2)} ${(7.5+y).toFixed(2)}L${(11-x).toFixed(2)} ${(7.5-y).toFixed(2)}`; }).join(""), stroke:"#000080", "stroke-width":0.18}),
-          s("circle",{cx:11, cy:7.5, r:0.45, fill:"#000080"})],
-    GBR: [R(0,0,22,15,"#012169"), s("path",{d:"M0 0L22 15M22 0L0 15", stroke:"#FFFFFF", "stroke-width":3}), s("path",{d:"M0 0L22 15M22 0L0 15", stroke:"#C8102E", "stroke-width":1}),
-          R(8.5,0,5,15,"#FFFFFF"), R(0,5,22,5,"#FFFFFF"), R(9.5,0,3,15,"#C8102E"), R(0,6,22,3,"#C8102E")]
-  }[code];
-  return s("svg",{class:"flag", width:w, height:Math.round(w*15/22), viewBox:"0 0 22 15", role:"img", "aria-label":name},
-    ...parts, s("rect",{x:.5, y:.5, width:21, height:14, fill:"none", stroke:"rgba(0,0,0,.2)"}));
+  const c = countryCode(code), name = COUNTRIES[c]; if (!name) return null;
+  return h("img",{class:"flag", src:`flags/${c}.svg`, alt:name, width:w, height:Math.round(w*3/4), decoding:"async"});
 }
 // Mugshots live in Firestore at photos/{playerId}, behind the same PIN rules as the scores.
 // No photo yet: a silhouette
@@ -640,7 +642,7 @@ function viewTable(){
         h("div",{style:"min-width:0"},
           h("div",{class:"eyebrow red"}, closed ? "Tinpot Tour Champion" : outright ? "Cup leader" : "Joint leader"),
           h("div",{class:"title-it name"}, pname(top.pid)),
-          playerById(top.pid)?.country ? h("div",{class:"row small muted", style:"gap:6px;margin-top:4px"}, flag(playerById(top.pid).country), COUNTRIES[playerById(top.pid).country]) : null)),
+          playerById(top.pid)?.country ? h("div",{class:"row small muted", style:"gap:6px;margin-top:4px"}, flag(playerById(top.pid).country), countryName(playerById(top.pid).country)) : null)),
       h("div",{class:"stats"}, stat(fmtPts(top.total),"CUP PTS",true), stat(top.entries.length,"EVENTS"), stat(top.wins,"WINS"))));
   }
 
@@ -856,7 +858,7 @@ function viewChampion(){
     h("div",{class:"champ-band"},
       h("div",{class:"eyebrow"}, trophy(), (yr?yr+" ":"")+"Tinpot Tour Champion"),
       h("h2",null, pname(c.pid)),
-      country ? h("div",{class:"champ-country"}, flag(country,24), COUNTRIES[country]) : null),
+      countryName(country) ? h("div",{class:"champ-country"}, flag(country,24), countryName(country)) : null),
     h("div",{class:"champ-stats"}, stat(fmtPts(c.total),"CUP PTS"), stat(c.entries.length,"EVENTS"), stat(c.wins,"WINS"), stat(majors,"MAJORS")),
     h("div",{class:"champ-rest"},
       h("div",{class:"eyebrow"},"Tour Championship result"),
@@ -898,7 +900,7 @@ function viewSetup(){
         flag(p.country,26),
         h("select",{"aria-label":"Country for "+(p.name||"player"), style:"flex:1", onchange:e=>{ p.country=e.target.value||null; render(); }},
           h("option",{value:""},"No flag"),
-          Object.entries(COUNTRIES).map(([k,v])=>h("option",{value:k, selected:p.country===k}, v)))),
+          Object.entries(COUNTRIES).map(([k,v])=>h("option",{value:k, selected:countryCode(p.country)===k}, v)))),
       h("div",{class:"row", style:"margin-top:8px"},
         h("label",{class:"btn ghost"}, S.photos[p.id] ? "Change photo" : "Add photo",
           h("input",{type:"file", accept:"image/*", class:"vh", "aria-label":"Photo for "+(p.name||"player"), onchange:e=>setPhoto(p.id, e.target.files[0])})),
@@ -910,7 +912,7 @@ function viewSetup(){
   out.push(h("button",{class:"btn big", style:"margin-top:14px", onclick:async()=>{
     if (d.players.some(p=>!p.name.trim() || !Number.isFinite(p.index))) return toast("Every player needs a name and handicap index");
     if (!d.season.trim()) return toast("Give the season a name");
-    const clean = {...d, players:d.players.map(p=>({id:p.id, name:p.name.trim(), index:+p.index, ...(COUNTRIES[p.country]?{country:p.country}:{})}))};
+    const clean = {...d, players:d.players.map(p=>({id:p.id, name:p.name.trim(), index:+p.index, ...(countryName(p.country)?{country:countryCode(p.country)}:{})}))};
     if (await guarded(()=>S.db.doc("admin/cfg").set(clean), "Settings saved")){ S.draftLeague=null; render(); }
   }},"Save settings"));
 
